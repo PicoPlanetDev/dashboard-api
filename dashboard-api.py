@@ -1,28 +1,52 @@
+from urllib import response
 from flask import Flask, request, jsonify
 import pywerschool
 import studentParser
+import json
+
+import os
+from os.path import join, dirname
+from dotenv import load_dotenv
+
+# Get environment variables from .env file
+dotenv_path = join(dirname(__file__), '.env')
+load_dotenv(dotenv_path)
+
+BASE_URL = os.environ.get("BASE_URL")
+LOGIN = os.environ.get("LOGIN")
+PASSWORD = os.environ.get("PASSWORD")
 
 app = Flask(__name__)
 
-def get_student(base_url, username, password):
-    client = pywerschool.Client(base_url)
-    student = client.getStudent(username, password, toDict=True)
+def get_student():
+    client = pywerschool.Client(BASE_URL)
+    student = client.getStudent(LOGIN, PASSWORD, toDict=True)
     return student
 
 @app.route('/grade', methods=['GET', 'POST'])
 def grade():
-    base_url = request.args.get('base_url')
-    username = request.args.get('username')
-    password = request.args.get('password')
-    term_name = request.args.get('term_name')
-    section_name = request.args.get('section_name')
+    term_name = "S2"
 
-    student = get_student(base_url, username, password)
+    content = request.get_json()
+    section_name = content['queryResult']['parameters']['param-name']
+
+    student = get_student()
     parser = studentParser.StudentParser(student)
 
     grade = parser.getGrade(parser.convertNameAndSection(section_name), parser.convertTermNameToIds(term_name))
 
-    return jsonify(grade), 200
+    percent = str(int(grade[1]))
+
+    jsonResponse = json.dumps({"payload":{"google":{"expectUserResponse":False,"richResponse":{"items":[{"simpleResponse":{"textToSpeech":"You have a {} percent in {}.".format(percent, section_name)}}]}}}})
+
+    return jsonResponse, 200
+
+def test():
+    percent = "50"
+    section_name = "Math"
+    setup = {"payload":{"google":{"expectUserResponse":False,"richResponse":{"items":[{"simpleResponse":{"textToSpeech":"You have a {} percent in {}.".format(percent, section_name)}}]}}}}
+    jsonResponse = json.dumps(setup)
+    return jsonResponse
 
 if __name__ == '__main__':
     app.run()
