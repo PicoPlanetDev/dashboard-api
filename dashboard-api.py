@@ -1,15 +1,12 @@
-from urllib import response
-from flask import Flask, request, jsonify
+from flask import Flask, request#, jsonify
 import pywerschool
 import studentParser
 import json
-
 import os
-from os.path import join, dirname
 from dotenv import load_dotenv
 
 # Get environment variables from .env file
-dotenv_path = join(dirname(__file__), '.env')
+dotenv_path = os.path.join(os.path.dirname(__file__), '.env')
 load_dotenv(dotenv_path)
 
 BASE_URL = os.environ.get("BASE_URL")
