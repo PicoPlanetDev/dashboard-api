@@ -38,12 +38,5 @@ def grade():
 
     return jsonResponse, 200
 
-def test():
-    percent = "50"
-    section_name = "Math"
-    setup = {"payload":{"google":{"expectUserResponse":False,"richResponse":{"items":[{"simpleResponse":{"textToSpeech":"You have a {} percent in {}.".format(percent, section_name)}}]}}}}
-    jsonResponse = json.dumps(setup)
-    return jsonResponse
-
 if __name__ == '__main__':
     app.run()
