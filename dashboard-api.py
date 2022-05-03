@@ -9,7 +9,7 @@ def get_student(base_url, username, password):
     student = client.getStudent(username, password, toDict=True)
     return student
 
-@app.route('/grade', methods=['GET'])
+@app.route('/grade', methods=['GET', 'POST'])
 def grade():
     base_url = request.args.get('base_url')
     username = request.args.get('username')
