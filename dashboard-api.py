@@ -35,7 +35,7 @@ def determineRequestPurpose(content):
         return wake()
 
 def wake():
-    responseText = "I'm ready to help check your grades!"
+    responseText = "Ok, I'm ready. Ask me about your grades."
     jsonResponse = json.dumps({"prompt": {"firstSimple": {"speech": responseText,"text": responseText}}})
 
     return jsonResponse
