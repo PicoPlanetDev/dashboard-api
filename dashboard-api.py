@@ -25,7 +25,7 @@ def grade():
     term_name = "S2"
 
     content = request.get_json()
-    section_name = content['queryResult']['parameters']['param-name']
+    section_name = content['intent']['params']['class']['resolved']
 
     student = get_student()
     parser = studentParser.StudentParser(student)
@@ -34,7 +34,8 @@ def grade():
 
     percent = str(int(grade[1]))
 
-    jsonResponse = json.dumps({"payload":{"google":{"expectUserResponse":False,"richResponse":{"items":[{"simpleResponse":{"textToSpeech":"You have a {} percent in {}.".format(percent, section_name)}}]}}}})
+    responseText = "You have a {} percent in {}.".format(percent, section_name)
+    jsonResponse = json.dumps({"prompt": {"firstSimple": {"speech": responseText,"text": responseText}}})
 
     return jsonResponse, 200
 
