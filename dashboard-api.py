@@ -45,6 +45,8 @@ def handleRequest(content, header):
 
 def get_grade(content, header):
     username, password, base_url = lookup_user(get_email(header))
+    if username == None or password == None or base_url == None:
+        return json.dumps({"candidates":[{"first_simple":{"variants":[{"speech":"Don't forget, you need to enter your Dashboard information online.","text":"Don't forget, you need to enter your Dashboard information at https://dashboard-api-web.glitch.me/"}]},"content":{"card":{"title":"Finish Account Linking","subtitle":"Please register","text":"Go to https://dashboard-api-web.glitch.me/ to enter your login information.","image":{"url":"https://img.icons8.com/fluency/96/000000/urgent-property.png","alt":"Register logo"},"button":{"name":"Sign Up","open":{"url":"https://dashboard-api-web.glitch.me/"}}}}}]})
 
     section_name = content['intent']['params']['class']['resolved']
 
@@ -91,6 +93,9 @@ def lookup_user(email):
             if row['email'] == email:
                 csvfile.close()
                 return row['username'], row['password'], row['base_url']
+    # If the user is not found, return None, None, None which will ask the user to create an account
+    csvfile.close()
+    return None, None, None
 
 def add_user(email, username, password, base_url):
     if not os.path.isfile('.data/storage.csv'): create_csv_storage()
