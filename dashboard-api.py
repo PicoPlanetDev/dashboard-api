@@ -41,6 +41,9 @@ def handleRequest(content, header):
     handler = content['handler']['name']
     if handler == "get_grade":
         return get_grade(content, header)
+    if handler == "add_user":
+        return add_user_from_actions(content, header)
+
 
 def get_grade(content, header):
     username, password, base_url = get_user_from_database(get_email(header))
@@ -65,6 +68,14 @@ def get_grade(content, header):
 def simple_response(text):
     jsonResponse = json.dumps({"prompt": {"firstSimple": {"speech": text,"text": text}}})
     return jsonResponse
+
+def add_user_from_actions(content, header):
+    email = get_email(header)
+    username = content['intent']['params']['username']['resolved']
+    password = content['intent']['params']['password']['resolved']
+    base_url = content['intent']['params']['base_url']['resolved']
+    add_user_to_database(email, username, password, base_url)
+    return simple_response("You are now registered.")
 
 @app.route('/create_user', methods=['POST'])
 def create_user():
