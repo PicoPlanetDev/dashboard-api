@@ -1,4 +1,3 @@
-from cv2 import createTonemap
 from flask import Flask, request#, jsonify
 import pywerschool
 import studentParser
@@ -6,7 +5,6 @@ import json
 import os
 from dotenv import load_dotenv
 from google.auth import jwt
-import csv
 import sqlite3 as sql
 
 # Get environment variables from .env file
