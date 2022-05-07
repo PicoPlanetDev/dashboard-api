@@ -12,6 +12,16 @@
     <style>
         body {
             font-family: Helvetica, Arial, sans-serif;
+            background-color: #acacac;
+        }
+
+        .content {
+            max-width: 50%;
+            margin: 0px auto;
+            background-color: #FFF;
+            padding: 20px;
+            border-radius: 20px;
+            box-shadow: #000 0px 0px 20px;
         }
     </style>
 
@@ -19,24 +29,28 @@
 
 <body>
 
-    <h1>Dashboard</h1>
+    <div class="content">
 
-    <form action="https://dashboard-api.glitch.me/create_user" method="POST">
-        <label for="email">Email:</label><br>
-        <input type="email" id="email" name="email" placeholder="email@example.com"><br>
-        <label for="username">Username:</label><br>
-        <input type="text" id="username" name="username" placeholder="Username"><br>
-        <label for="password">Password:</label><br>
-        <input type="password" id="password" name="password"><br>
-        <label for="base_url">Base URL:</label><br>
-        <input type="url" id="base_url" name="base_url" placeholder="https://example.com"><br><br>
-        <input type="submit" value="Save">
-    </form>
+        <h1>Dashboard</h1>
 
-    <p>
-        When you click the "Save" button, your information will be saved in the Dashboard database. Then you can use
-        Dashboard through Google Assistant.
-    </p>
+        <form action="https://dashboard-api.glitch.me/create_user" method="POST">
+            <label for="email">Email:</label><br>
+            <input type="email" id="email" name="email" placeholder="email@example.com"><br>
+            <label for="username">Username:</label><br>
+            <input type="text" id="username" name="username" placeholder="Username"><br>
+            <label for="password">Password:</label><br>
+            <input type="password" id="password" name="password"><br>
+            <label for="base_url">Base URL:</label><br>
+            <input type="url" id="base_url" name="base_url" placeholder="https://example.com"><br><br>
+            <input type="submit" value="Save">
+        </form>
+
+        <p>
+            When you click the "Save" button, your information will be saved in the Dashboard database. Then you can use
+            Dashboard through Google Assistant.
+        </p>
+
+    </div>
 </body>
 
 </html>
