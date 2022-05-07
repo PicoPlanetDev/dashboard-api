@@ -1,3 +1,4 @@
 zeep
 flask
 dotenv
+google-auth
