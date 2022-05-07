@@ -81,6 +81,7 @@ def delete_user():
     email = request.form['email']
     password = request.form['password']
     delete_user_from_database(email, password)
+    return "User deleted successfully", 200
 
 def get_email(header):
     authorization = header['Authorization']
@@ -126,3 +127,4 @@ def wake():
 
 if __name__ == '__main__':
     app.run()
+    create_database()
