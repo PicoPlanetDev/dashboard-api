@@ -1,5 +1,3 @@
-import email
-from venv import create
 from flask import Flask, request#, jsonify
 import pywerschool
 import studentParser
@@ -8,6 +6,7 @@ import os
 from dotenv import load_dotenv
 from google.auth import jwt
 import csv
+
 
 # Get environment variables from .env file
 dotenv_path = os.path.join(os.path.dirname(__file__), '.env')
