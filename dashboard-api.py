@@ -84,6 +84,7 @@ def create_user():
     password = request.form['password']
     base_url = request.form['base_url']
     add_user(email, username, password, base_url)
+    return "User created", 200
 
 # def create_user(header):
 #     authorization = header['Authorization']
@@ -96,19 +97,19 @@ def get_email(header):
     return claims['email']
 
 def lookup_user(email):
-    with open('storage.csv', 'r') as csvfile:
+    with open('.data/storage.csv', 'r') as csvfile:
         dictionary = csv.DictReader(csvfile)
         csvfile.close()
         return dictionary[email]
 
 def add_user(email, username, password, base_url):
-    with open('storage.csv', 'a') as csvfile:
+    with open('.data/storage.csv', 'a') as csvfile:
         csvwriter = csv.writer(csvfile)
         csvwriter.writerow([email, username, password, base_url])
     csvfile.close()
 
 def create_csv_storage():
-    with open('storage.csv', 'w') as csvfile:
+    with open('.data/storage.csv', 'w') as csvfile:
         csvwriter = csv.writer(csvfile)
         csvwriter.writerow(['email', 'username', 'password', 'base_url'])
     csvfile.close()
@@ -116,4 +117,4 @@ def create_csv_storage():
 
 if __name__ == '__main__':
     app.run()
-    if not os.path.isfile('storage.csv'): create_csv_storage()
+    if not os.path.isfile('.data/storage.csv'): create_csv_storage()
