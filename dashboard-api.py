@@ -1,3 +1,4 @@
+import email
 from venv import create
 from flask import Flask, request#, jsonify
 import pywerschool
@@ -6,14 +7,15 @@ import json
 import os
 from dotenv import load_dotenv
 from google.auth import jwt
+import csv
 
 # Get environment variables from .env file
 dotenv_path = os.path.join(os.path.dirname(__file__), '.env')
 load_dotenv(dotenv_path)
 
-BASE_URL = os.environ.get("BASE_URL")
-LOGIN = os.environ.get("LOGIN")
-PASSWORD = os.environ.get("PASSWORD")
+# BASE_URL = os.environ.get("BASE_URL")
+# LOGIN = os.environ.get("LOGIN")
+# PASSWORD = os.environ.get("PASSWORD")
 GOOGLE_CLIENT_ID = os.environ.get("CLIENT_ID")
 
 GOOGLE_PUBLIC_CERTS = {
@@ -24,12 +26,12 @@ GOOGLE_PUBLIC_CERTS = {
 
 app = Flask(__name__)
 
-def get_student():
-    client = pywerschool.Client(BASE_URL)
-    student = client.getStudent(LOGIN, PASSWORD, toDict=True)
+def get_student(username, password, base_url):
+    client = pywerschool.Client(base_url)
+    student = client.getStudent(username, password, toDict=True)
     return student
 
-@app.route('/endpoint', methods=['GET', 'POST'])
+@app.route('/endpoint', methods=['POST'])
 def grade():
     header = request.headers
     content = request.get_json()
@@ -50,14 +52,16 @@ def handleRequest(content, header):
 
 def wake():
     responseText = "Ok, I'm ready. Ask me about your grades."
-    jsonResponse = json.dumps({"prompt": {"firstSimple": {"speech": responseText,"text": responseText}}})
+    jsonResponse = simple_response(responseText)
 
     return jsonResponse
 
-def get_grade(content):
+def get_grade(content, header):
+    username, password, base_url = lookup_user(get_email(header))
+
     section_name = content['intent']['params']['class']['resolved']
 
-    student = get_student()
+    student = get_student(username, password, base_url)
     parser = studentParser.StudentParser(student)
 
     term_name = "S2"
@@ -66,15 +70,52 @@ def get_grade(content):
     percent = str(int(grade[1]))
 
     responseText = "You have a {} percent in {}.".format(percent, section_name)
-    jsonResponse = json.dumps({"prompt": {"firstSimple": {"speech": responseText,"text": responseText}}})
+    jsonResponse = simple_response(responseText)
 
     return jsonResponse
 
-def create_user(header):
+def simple_response(text):
+    jsonResponse = json.dumps({"prompt": {"firstSimple": {"speech": text,"text": text}}})
+    return jsonResponse
+
+@app.route('/create_user', methods=['POST'])
+def create_user():
+    content = request.get_json()
+    email = content['email']
+    username = content['username']
+    password = content['password']
+    base_url = content['base_url']
+    add_user(email, username, password, base_url)
+
+# def create_user(header):
+#     authorization = header['Authorization']
+#     claims = jwt.decode(authorization, certs=GOOGLE_PUBLIC_CERTS, audience=GOOGLE_CLIENT_ID)
+#     return claims
+
+def get_email(header):
     authorization = header['Authorization']
     claims = jwt.decode(authorization, certs=GOOGLE_PUBLIC_CERTS, audience=GOOGLE_CLIENT_ID)
-    print(claims)
-    return claims
+    return claims['email']
+
+def lookup_user(email):
+    with open('storage.csv', 'r') as csvfile:
+        dictionary = csv.DictReader(csvfile)
+        csvfile.close()
+        return dictionary[email]
+
+def add_user(email, username, password, base_url):
+    with open('storage.csv', 'a') as csvfile:
+        csvwriter = csv.writer(csvfile)
+        csvwriter.writerow([email, username, password, base_url])
+    csvfile.close()
+
+def create_csv_storage():
+    with open('storage.csv', 'w') as csvfile:
+        csvwriter = csv.writer(csvfile)
+        csvwriter.writerow(['email', 'username', 'password', 'base_url'])
+    csvfile.close()
+
 
 if __name__ == '__main__':
     app.run()
+    if not os.path.isfile('storage.csv'): create_csv_storage()
