@@ -40,20 +40,8 @@ def grade():
 
 def handleRequest(content, header):
     handler = content['handler']['name']
-    if handler == "wake":
-        return wake()
-    elif handler == "get_grade":
+    if handler == "get_grade":
         return get_grade(content, header)
-    # elif handler == "create_user":
-    #     return create_user(header)
-    else:
-        return None
-
-def wake():
-    responseText = "Ok, I'm ready. Ask me about your grades."
-    jsonResponse = simple_response(responseText)
-
-    return jsonResponse
 
 def get_grade(content, header):
     username, password, base_url = lookup_user(get_email(header))
@@ -105,6 +93,7 @@ def lookup_user(email):
                 return row['username'], row['password'], row['base_url']
 
 def add_user(email, username, password, base_url):
+    if not os.path.isfile('.data/storage.csv'): create_csv_storage()
     with open('.data/storage.csv', 'a') as csvfile:
         csvwriter = csv.writer(csvfile)
         csvwriter.writerow([email, username, password, base_url])
@@ -116,7 +105,9 @@ def create_csv_storage():
         csvwriter.writerow(['email', 'username', 'password', 'base_url'])
     csvfile.close()
 
+@app.route('/wake', methods=['GET'])
+def wake():
+    return "Woken", 200
 
 if __name__ == '__main__':
     app.run()
-    if not os.path.isfile('.data/storage.csv'): create_csv_storage()
