@@ -99,9 +99,9 @@ def get_email(header):
 def lookup_user(email):
     with open('.data/storage.csv', 'r') as csvfile:
         dictionary = csv.DictReader(csvfile)
-        csvfile.close()
         for row in dictionary:
             if row['email'] == email:
+                csvfile.close()
                 return row['username'], row['password'], row['base_url']
 
 def add_user(email, username, password, base_url):
