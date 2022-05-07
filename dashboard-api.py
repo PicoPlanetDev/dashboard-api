@@ -79,11 +79,10 @@ def simple_response(text):
 
 @app.route('/create_user', methods=['POST'])
 def create_user():
-    content = request.get_json()
-    email = content['email']
-    username = content['username']
-    password = content['password']
-    base_url = content['base_url']
+    email = request.form['email']
+    username = request.form['username']
+    password = request.form['password']
+    base_url = request.form['base_url']
     add_user(email, username, password, base_url)
 
 # def create_user(header):
