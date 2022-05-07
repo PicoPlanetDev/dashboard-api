@@ -1,3 +1,4 @@
+from cv2 import createTonemap
 from flask import Flask, request#, jsonify
 import pywerschool
 import studentParser
@@ -6,7 +7,7 @@ import os
 from dotenv import load_dotenv
 from google.auth import jwt
 import csv
-
+import sqlite3 as sql
 
 # Get environment variables from .env file
 dotenv_path = os.path.join(os.path.dirname(__file__), '.env')
@@ -44,7 +45,7 @@ def handleRequest(content, header):
         return get_grade(content, header)
 
 def get_grade(content, header):
-    username, password, base_url = lookup_user(get_email(header))
+    username, password, base_url = get_user_from_database(get_email(header))
     if username == None or password == None or base_url == None:
         return json.dumps({"candidates":[{"first_simple":{"variants":[{"speech":"Don't forget, you need to enter your Dashboard information online.","text":"Don't forget, you need to enter your Dashboard information at https://dashboard-api-web.glitch.me/"}]},"content":{"card":{"title":"Finish Account Linking","subtitle":"Please register","text":"Go to https://dashboard-api-web.glitch.me/ to enter your login information.","image":{"url":"https://img.icons8.com/fluency/96/000000/urgent-property.png","alt":"Register logo"},"button":{"name":"Sign Up","open":{"url":"https://dashboard-api-web.glitch.me/"}}}}}]})
 
@@ -73,42 +74,53 @@ def create_user():
     username = request.form['username']
     password = request.form['password']
     base_url = request.form['base_url']
-    add_user(email, username, password, base_url)
-    return "User created", 200
+    create_database()
+    add_user_to_database(email, username, password, base_url)
+    return "User created successfully", 200
 
-# def create_user(header):
-#     authorization = header['Authorization']
-#     claims = jwt.decode(authorization, certs=GOOGLE_PUBLIC_CERTS, audience=GOOGLE_CLIENT_ID)
-#     return claims
+@app.route('/delete_user', methods=['POST'])
+def delete_user():
+    email = request.form['email']
+    password = request.form['password']
+    delete_user_from_database(email, password)
 
 def get_email(header):
     authorization = header['Authorization']
     claims = jwt.decode(authorization, certs=GOOGLE_PUBLIC_CERTS, audience=GOOGLE_CLIENT_ID)
     return claims['email']
 
-def lookup_user(email):
-    with open('.data/storage.csv', 'r') as csvfile:
-        dictionary = csv.DictReader(csvfile)
-        for row in dictionary:
-            if row['email'] == email:
-                csvfile.close()
-                return row['username'], row['password'], row['base_url']
-    # If the user is not found, return None, None, None which will ask the user to create an account
-    csvfile.close()
-    return None, None, None
+def create_database():
+    con = sql.connect('.data/database.db')
+    # Right now just trying to replicate the old functionality
+    # TODO: Allow adding dictionaries so classes can be officially mapped
+    with con:
+        con.execute("""
+        CREATE TABLE IF NOT EXISTS users (
+            email TEXT PRIMARY KEY,
+            username TEXT,
+            password TEXT,
+            base_url TEXT
+        );
+        """)
 
-def add_user(email, username, password, base_url):
-    if not os.path.isfile('.data/storage.csv'): create_csv_storage()
-    with open('.data/storage.csv', 'a') as csvfile:
-        csvwriter = csv.writer(csvfile)
-        csvwriter.writerow([email, username, password, base_url])
-    csvfile.close()
+def add_user_to_database(email, username, password, base_url):
+    con = sql.connect('.data/database.db')
+    # Add user to database
+    with con:
+        con.execute("INSERT INTO users VALUES (?, ?, ?, ?)", (email, username, password, base_url))
 
-def create_csv_storage():
-    with open('.data/storage.csv', 'w') as csvfile:
-        csvwriter = csv.writer(csvfile)
-        csvwriter.writerow(['email', 'username', 'password', 'base_url'])
-    csvfile.close()
+def get_user_from_database(email):
+    con = sql.connect('.data/database.db')
+    with con:
+        data = con.execute("SELECT * FROM users WHERE email = ?", (email,))
+        for row in data: return row[1], row[2], row[3] # Hopefully there is just one email
+    return None, None, None # If there is no user, return None, None, None which should ask the user to create an account
+
+def delete_user_from_database(email, password):
+    con = sql.connect('.data/database.db')
+    # Password must also be provided to delete a user
+    with con:
+        con.execute("DELETE FROM users WHERE email = ? AND password = ?", (email, password))
 
 @app.route('/wake', methods=['GET'])
 def wake():
