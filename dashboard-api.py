@@ -43,9 +43,9 @@ def handleRequest(content, header):
     if handler == "wake":
         return wake()
     elif handler == "get_grade":
-        return get_grade(content)
-    elif handler == "create_user":
-        return create_user(header)
+        return get_grade(content, header)
+    # elif handler == "create_user":
+    #     return create_user(header)
     else:
         return None
 
