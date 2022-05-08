@@ -16,8 +16,7 @@
         }
 
         .content {
-            max-width: 50%;
-            margin: 0px auto;
+            margin: 0 10%;
             background-color: #FFF;
             padding: 20px;
             border-radius: 20px;
@@ -50,6 +49,93 @@
         <p>
             When you click the "Save" button, your information will be saved in the Dashboard database. Then you can use
             Dashboard through Google Assistant.
+        </p>
+
+        <h2>Edit Classes</h2>
+        <p>To edit your classes, make sure that you have registered above first. Then, enter your email and PowerSchool
+            password below. Finally, edit the template JSON below to create a mapping between the class names that
+            appear in PowerSchool, for example <em>(H) Organic Chemistry</em> or <em>AP Physics: C: Mechanics</em>. In
+            other words, it must appear exactly how it does in PowerSchool. Finally, it is reccomended to make your
+            edits in <a href="https://jsonlint.com/" target="_blank">JSONLint</a> and verify them so there are no
+            errors. Make sure to add a comma if there is something after it!
+        </p>
+        <p>
+            Available synonyms:
+        </p>
+        <ul style="columns: 2; -webkit-columns: 2; -moz-columns: 2;">
+            <li>engineering</li>
+            <li>science</li>
+            <li>music</li>
+            <li>choir</li>
+            <li>art</li>
+            <li>band</li>
+            <li>orchestra</li>
+            <li>drama</li>
+            <li>environmental_science</li>
+            <li>biology</li>
+            <li>chemistry</li>
+            <li>french</li>
+            <li>spanish</li>
+            <li>german</li>
+            <li>language</li>
+            <li>literature</li>
+            <li>english</li>
+            <li>statistics</li>
+            <li>math</li>
+            <li>dance</li>
+            <li>physical_education</li>
+            <li>calculus</li>
+            <li>organic_chemistry</li>
+            <li>physics</li>
+            <li>history</li>
+        </ul>
+        <p>
+            These synonyms are <strong>lowercase only</strong>. You can stack these synonyms if you want them to refer
+            to the same class, for example <em>["physics","science"]</em>. In addition, each synonym has multiple ways
+            to be said and recognized by Google Assistant. For example, the <em>art</em> synonym can be said as <em>art,
+                pottery, clay, digital art, and AP art</em>.
+        </p>
+        <p>
+            Do you say something another way? Send an email to <a
+                href="mailto:picoplanetdev@gmail.com">picoplanetdev@gmail.com</a> and it will be added to the list.
+        </p>
+        <form action="https://dashboard-api.glitch.me/create_user" method="POST">
+            <label for="email">Email:</label><br>
+            <input type="email" id="email" name="email" placeholder="email@example.com"><br>
+            <label for="password">Password:</label><br>
+            <input type="password" id="password" name="password"><br>
+            <label for="classes">Class mapping (must be JSON compatible, test in <a href="https://jsonlint.com/"
+                    target="_blank">JSONLint</a>)</label><br>
+            <textarea id="classes" name="classes" style="width: 100%; max-width: 100%; min-height: 300px;">{
+    "class_name": ["synonym1", "synonym2", "etc"],
+    "class_name_2": ["synonym1", "synonym2", "etc"]
+}</textarea><br><br>
+            <input type="submit" value="Update">
+        </form>
+
+        <p>
+            When you click the "Update" button, any current classes associated with your email will be replaced with the
+            new classes in the box above.
+        </p>
+
+        <h2>Set Term</h2>
+
+        <p>
+            Please type the term string exactly as it appears in PowerSchool, for example <em>Q1</em> or <em>S2</em>.
+        </p>
+
+        <form action="https://dashboard-api.glitch.me/edit_classes" method="POST">
+            <label for="email">Email:</label><br>
+            <input type="email" id="email" name="email" placeholder="email@example.com"><br>
+            <label for="password">Password:</label><br>
+            <input type="password" id="password" name="password"><br>
+            <label for="term">Term:</label><br>
+            <input type="text" id="term" name="term"><br><br>
+            <input type="submit" value="Set Term">
+        </form>
+
+        <p>
+            When you click the "Delete" button, your information will be deleted from the Dashboard database.
         </p>
 
         <h2 style="color: red;">Delete User</h2>

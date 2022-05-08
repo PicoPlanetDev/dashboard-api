@@ -1,4 +1,4 @@
-from flask import Flask, request#, jsonify
+from flask import Flask, jsonify, request
 import pywerschool
 import studentParser
 import json
@@ -50,12 +50,14 @@ def get_grade(content, header):
     if username == None or password == None or base_url == None:
         return json.dumps({"prompt":{"content":{"card":{"title":"Finish Account Linking","subtitle":"Please register","text":"Go to https://dashboard-api-web.glitch.me/ to enter your login information.","image":{"url":"https://img.icons8.com/fluency/96/000000/urgent-property.png","alt":"Register logo"},"button":{"name":"Sign Up","open":{"url":"https://dashboard-api-web.glitch.me/"}}}},"firstSimple":{"speech":"Don't forget, you need to enter your Dashboard information online.","text":"Don't forget, you need to enter your Dashboard information at https://dashboard-api-web.glitch.me/"}}})
 
-    section_name = content['intent']['params']['class']['resolved']
+    email = get_email(header)
+    synonym = content['intent']['params']['synonym']['resolved']
+    section_name = evaluate_class_from_synonym(email, synonym)
 
     student = get_student(username, password, base_url)
     parser = studentParser.StudentParser(student)
 
-    term_name = "S2"
+    term_name = get_term_from_database(email)
     grade = parser.getGrade(parser.convertNameAndSection(section_name), parser.convertTermNameToIds(term_name))
 
     percent = str(int(grade[1]))
@@ -128,14 +130,97 @@ def get_user_from_database(email):
 
 def delete_user_from_database(email, password):
     con = sql.connect('.data/database.db')
+    if not verify_email_and_password(email, password): return "Invalid email or password", 401
     # Password must also be provided to delete a user
     with con:
         con.execute("DELETE FROM users WHERE email = ? AND password = ?", (email, password))
+
+def create_classes_table():
+    con = sql.connect('.data/database.db')
+    with con:
+        con.execute("""
+        CREATE TABLE IF NOT EXISTS classes (
+            email TEXT,
+            class TEXT,
+            synonym TEXT
+        );
+        """)
+
+def create_terms_table():
+    con = sql.connect('.data/database.db')
+    with con:
+        con.execute("""
+        CREATE TABLE IF NOT EXISTS terms (
+            email TEXT,
+            term TEXT
+        );
+        """)
+
+@app.route('/set_term', methods=['POST'])
+def set_term():
+    email = request.form['email']
+    password = request.form['password']
+    if not verify_email_and_password(email, password): return "Invalid email or password", 401
+    term = request.form['term']
+    add_term_to_database(email, term)
+    return "Term set successfully", 200
+
+def add_term_to_database(email, term):
+    con = sql.connect('.data/database.db')
+    with con:
+        con.execute("INSERT INTO terms VALUES (?, ?)", (email, term))
+
+def delete_term_from_database(email, term):
+    con = sql.connect('.data/database.db')
+    with con:
+        con.execute("DELETE FROM terms WHERE email = ? AND term = ?", (email, term))
+
+def get_term_from_database(email):
+    con = sql.connect('.data/database.db')
+    with con:
+        data = con.execute("SELECT * FROM terms WHERE email = ?", (email,))
+        for row in data: return row[1]
+
+def verify_email_and_password(email, password):
+    con = sql.connect('.data/database.db')
+    with con:
+        data = con.execute("SELECT * FROM users WHERE email = ? AND password = ?", (email, password))
+        for row in data: return True # If a row exists where the email and password match, return True
+
+def add_classes_to_database(email, classes):
+    con = sql.connect('.data/database.db')
+    with con:
+        for class_name in classes:
+            for synonym in classes[class_name]:
+                con.execute("INSERT INTO classes VALUES (?, ?, ?)", (email, class_name, synonym))
+
+def remove_classes_from_database(email):
+    con = sql.connect('.data/database.db')
+    with con:
+        con.execute("DELETE FROM classes WHERE email = ?", (email,))
+
+def evaluate_class_from_synonym(email, synonym):
+    con = sql.connect('.data/database.db')
+    with con:
+        data = con.execute("SELECT * FROM classes WHERE email = ? AND synonym = ?", (email, synonym))
+        for row in data: return row[1] # If a row exists where the email and synonym match, return the class
+
+@app.route('/edit_classes', methods=['POST'])
+def edit_classes():
+    email = request.form['email']
+    password = request.form['password']
+    if not verify_email_and_password(email, password): return "Invalid email or password", 401
+    classes = json.loads(request.form['classes'])
+    create_classes_table()
+    remove_classes_from_database(email)
+    add_classes_to_database(email, classes)
+    return "Classes added successfully", 200
+
 
 @app.route('/wake', methods=['GET'])
 def wake():
     return "Woken", 200
 
 if __name__ == '__main__':
-    app.run()
+    app.run(debug=True)
     create_database()
