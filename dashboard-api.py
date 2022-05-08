@@ -51,7 +51,7 @@ def get_grade(content, header):
         return json.dumps({"prompt":{"content":{"card":{"title":"Finish Account Linking","subtitle":"Please register","text":"Go to https://dashboard-api-web.glitch.me/ to enter your login information.","image":{"url":"https://img.icons8.com/fluency/96/000000/urgent-property.png","alt":"Register logo"},"button":{"name":"Sign Up","open":{"url":"https://dashboard-api-web.glitch.me/"}}}},"firstSimple":{"speech":"Don't forget, you need to enter your Dashboard information online.","text":"Don't forget, you need to enter your Dashboard information at https://dashboard-api-web.glitch.me/"}}})
 
     email = get_email(header)
-    synonym = content['intent']['params']['synonym']['resolved']
+    synonym = content['intent']['params']['class']['resolved']
     section_name = evaluate_class_from_synonym(email, synonym)
 
     student = get_student(username, password, base_url)
@@ -223,5 +223,5 @@ def wake():
     return "Woken", 200
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=False) # Change to False when deploying
     create_database()
