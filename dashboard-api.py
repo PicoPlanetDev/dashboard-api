@@ -166,6 +166,7 @@ def set_term():
     return "Term set successfully", 200
 
 def add_term_to_database(email, term):
+    create_terms_table()
     con = sql.connect('.data/database.db')
     with con:
         con.execute("INSERT INTO terms VALUES (?, ?)", (email, term))
