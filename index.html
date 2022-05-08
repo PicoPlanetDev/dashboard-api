@@ -36,13 +36,13 @@
 
         <form action="https://dashboard-api.glitch.me/create_user" method="POST">
             <label for="email">Email:</label><br>
-            <input type="email" id="email" name="email" placeholder="email@example.com"><br>
+            <input type="email" id="create_email" name="email" placeholder="email@example.com"><br>
             <label for="username">Username:</label><br>
-            <input type="text" id="username" name="username" placeholder="Username"><br>
+            <input type="text" id="create_username" name="username" placeholder="Username"><br>
             <label for="password">Password:</label><br>
-            <input type="password" id="password" name="password"><br>
+            <input type="password" id="create_password" name="password"><br>
             <label for="base_url">Base URL:</label><br>
-            <input type="url" id="base_url" name="base_url" placeholder="https://example.com"><br><br>
+            <input type="url" id="create_base_url" name="base_url" placeholder="https://example.com"><br><br>
             <input type="submit" value="Save">
         </form>
 
@@ -101,12 +101,12 @@
         </p>
         <form action="https://dashboard-api.glitch.me/create_user" method="POST">
             <label for="email">Email:</label><br>
-            <input type="email" id="email" name="email" placeholder="email@example.com"><br>
+            <input type="email" id="class_email" name="email" placeholder="email@example.com"><br>
             <label for="password">Password:</label><br>
-            <input type="password" id="password" name="password"><br>
+            <input type="password" id="class_password" name="password"><br>
             <label for="classes">Class mapping (must be JSON compatible, test in <a href="https://jsonlint.com/"
                     target="_blank">JSONLint</a>)</label><br>
-            <textarea id="classes" name="classes" style="width: 100%; max-width: 100%; min-height: 300px;">{
+            <textarea id="classes" name="class_classes" style="width: 100%; max-width: 100%; min-height: 300px;">{
     "class_name": ["synonym1", "synonym2", "etc"],
     "class_name_2": ["synonym1", "synonym2", "etc"]
 }</textarea><br><br>
@@ -126,11 +126,11 @@
 
         <form action="https://dashboard-api.glitch.me/edit_classes" method="POST">
             <label for="email">Email:</label><br>
-            <input type="email" id="email" name="email" placeholder="email@example.com"><br>
+            <input type="email" id="term_email" name="email" placeholder="email@example.com"><br>
             <label for="password">Password:</label><br>
-            <input type="password" id="password" name="password"><br>
+            <input type="password" id="term_password" name="password"><br>
             <label for="term">Term:</label><br>
-            <input type="text" id="term" name="term"><br><br>
+            <input type="text" id="term_term" name="term"><br><br>
             <input type="submit" value="Set Term">
         </form>
 
@@ -142,9 +142,9 @@
 
         <form action="https://dashboard-api.glitch.me/delete_user" method="POST">
             <label for="email">Email:</label><br>
-            <input type="email" id="email" name="email" placeholder="email@example.com"><br>
+            <input type="email" id="delete_email" name="email" placeholder="email@example.com"><br>
             <label for="password">Password:</label><br>
-            <input type="password" id="password" name="password"><br><br>
+            <input type="password" id="delete_password" name="password"><br><br>
             <input type="submit" value="Delete">
         </form>
 
