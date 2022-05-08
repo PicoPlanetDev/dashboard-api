@@ -22,6 +22,19 @@
             border-radius: 20px;
             box-shadow: #000 0px 0px 20px;
         }
+
+        code {
+            font-family: Consolas, Courier New, Courier, monospace;
+            background-color: #acacac;
+        }
+
+        textarea {
+            width: 100%;
+            max-width: 100%;
+            min-height: 300px;
+            font-family: Consolas, 'Courier New', Courier, monospace;
+            font-size: 14px;
+        }
     </style>
 
 </head>
@@ -33,6 +46,14 @@
         <h1>Grades Dashboard</h1>
 
         <h2>Create User</h2>
+
+        <p>
+            Please enter your <strong>Google Account email</strong> below once you have linked your account through
+            Google Assistant. Then, enter your PowerSchool information as you would when signing in normally. Finally,
+            enter your <code>base_url</code> which is the URL that you use to access PowerSchool in your district. For
+            example, it might look like <em>https://ps.district.org</em>. Using https is recommended to secure your
+            requests.
+        </p>
 
         <form action="https://dashboard-api.glitch.me/create_user" method="POST">
             <label for="email">Email:</label><br>
@@ -91,9 +112,9 @@
         </ul>
         <p>
             These synonyms are <strong>lowercase only</strong>. You can stack these synonyms if you want them to refer
-            to the same class, for example <em>["physics","science"]</em>. In addition, each synonym has multiple ways
-            to be said and recognized by Google Assistant. For example, the <em>art</em> synonym can be said as <em>art,
-                pottery, clay, digital art, and AP art</em>.
+            to the same class, for example <code>["physics","science"]</code>. In addition, each synonym has multiple
+            ways to be said and recognized by Google Assistant. For example, the <code>art</code> synonym can be said as
+            <em>art, pottery, clay, digital art, and AP art</em>.
         </p>
         <p>
             Do you say something another way? Send an email to <a
@@ -106,7 +127,7 @@
             <input type="password" id="class_password" name="password"><br>
             <label for="classes">Class mapping (must be JSON compatible, test in <a href="https://jsonlint.com/"
                     target="_blank">JSONLint</a>)</label><br>
-            <textarea id="class_classes" name="classes" style="width: 100%; max-width: 100%; min-height: 300px;">{
+            <textarea id="class_classes" name="classes">{
     "class_name": ["synonym1", "synonym2", "etc"],
     "class_name_2": ["synonym1", "synonym2", "etc"]
 }</textarea><br><br>
