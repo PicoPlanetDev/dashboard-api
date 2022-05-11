@@ -11,9 +11,6 @@ import sqlite3 as sql
 dotenv_path = os.path.join(os.path.dirname(__file__), '.env')
 load_dotenv(dotenv_path)
 
-# BASE_URL = os.environ.get("BASE_URL")
-# LOGIN = os.environ.get("LOGIN")
-# PASSWORD = os.environ.get("PASSWORD")
 GOOGLE_CLIENT_ID = os.environ.get("CLIENT_ID")
 
 GOOGLE_PUBLIC_CERTS = {
@@ -87,14 +84,14 @@ def create_user():
     base_url = request.form['base_url']
     create_database()
     add_user_to_database(email, username, password, base_url)
-    return "User created successfully", 200
+    return "User created successfully. <a href=https://dashboard-api-web.glitch.me>Return</a>", 200
 
 @app.route('/delete_user', methods=['POST'])
 def delete_user():
     email = request.form['email']
     password = request.form['password']
     delete_user_from_database(email, password)
-    return "User deleted successfully", 200
+    return "User deleted successfully. <a href=https://dashboard-api-web.glitch.me>Return</a>", 200
 
 def get_email(header):
     authorization = header['Authorization']
@@ -163,7 +160,7 @@ def set_term():
     if not verify_email_and_password(email, password): return "Invalid email or password", 401
     term = request.form['term']
     add_term_to_database(email, term)
-    return "Term set successfully", 200
+    return "Term set successfully. <a href=https://dashboard-api-web.glitch.me>Return</a>", 200
 
 def add_term_to_database(email, term):
     create_terms_table()
@@ -215,7 +212,7 @@ def edit_classes():
     create_classes_table()
     remove_classes_from_database(email)
     add_classes_to_database(email, classes)
-    return "Classes added successfully", 200
+    return "Classes added successfully. <a href=https://dashboard-api-web.glitch.me>Return</a>", 200
 
 
 @app.route('/wake', methods=['GET'])
@@ -223,5 +220,5 @@ def wake():
     return "Woken", 200
 
 if __name__ == '__main__':
-    app.run(debug=False) # Change to False when deploying
+    #app.run(debug=False)
     create_database()
