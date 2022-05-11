@@ -11,6 +11,7 @@ import sqlite3 as sql
 dotenv_path = os.path.join(os.path.dirname(__file__), '.env')
 load_dotenv(dotenv_path)
 
+DEBUG = bool(os.environ.get("DEBUG"))
 GOOGLE_CLIENT_ID = os.environ.get("CLIENT_ID")
 
 GOOGLE_PUBLIC_CERTS = {
@@ -220,5 +221,5 @@ def wake():
     return "Woken", 200
 
 if __name__ == '__main__':
-    #app.run(debug=False)
+    if DEBUG: app.run(debug=True)
     create_database()
