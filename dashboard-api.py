@@ -349,7 +349,7 @@ def delete_user_from_database(email):
     con = sql.connect('.data/database.db')
     # Password must also be provided to delete a user
     with con:
-        con.execute("DELETE FROM users WHERE email = ?", email)
+        con.execute("DELETE FROM users WHERE email = ?", (email,))
 
 # Email and password verification function
 def verify_email_and_password(email, password):
