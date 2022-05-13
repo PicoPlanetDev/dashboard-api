@@ -11,7 +11,7 @@ import sqlite3 as sql
 dotenv_path = os.path.join(os.path.dirname(__file__), '.env')
 load_dotenv(dotenv_path)
 
-DEBUG = bool(os.environ.get("DASHBOARD_API_DEBUG"))
+DEBUG = os.environ.get("DASHBOARD_API_DEBUG") == "True"
 GOOGLE_CLIENT_ID = os.environ.get("DASHBOARD_API_URL_CLIENT_ID")
 WEB_INTERFACE_URL = os.environ.get("DASHBOARD_API_WEB_INTERFACE_URL")
 
