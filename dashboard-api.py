@@ -14,6 +14,7 @@ dotenv_path = os.path.join(os.path.dirname(__file__), '.env')
 load_dotenv(dotenv_path)
 
 DEBUG = os.environ.get("DASHBOARD_API_DEBUG") == "True"
+EMAIL_OAUTH_CREDS_PATH = os.environ.get("DASHBOARD_API_EMAIL_OAUTH_CREDS_PATH")
 GOOGLE_CLIENT_ID = os.environ.get("DASHBOARD_API_URL_CLIENT_ID")
 WEB_INTERFACE_URL = os.environ.get("DASHBOARD_API_WEB_INTERFACE_URL")
 
@@ -97,7 +98,7 @@ def generate_recovery_code():
     email = request.form['email']
     recovery_code = random.randint(100000, 999999)
     add_recovery_to_database(email, recovery_code)
-    yag = yagmail.SMTP('noreply.dashboard.api', oauth2_file='oauth2_creds.json')
+    yag = yagmail.SMTP('noreply.dashboard.api', oauth2_file=EMAIL_OAUTH_CREDS_PATH)
     contents = [
         "<h1>Grades Dashboard Recovery Code</h1>",
         "Your recovery code is {}".format(recovery_code),
