@@ -1,3 +1,4 @@
+import re
 from flask import Flask, request#, jsonify
 import pywerschool
 import studentParser
@@ -109,7 +110,8 @@ def get_grade(content, header):
         return register_card
     
     email = get_email(header)
-    synonym = content['intent']['params']['class']['resolved']
+    try: synonym = content['intent']['params']['class']['resolved']
+    except KeyError: return simple_response("Sorry, something went wrong. Please try again later.")
     section_name = evaluate_class_from_synonym(email, synonym)
 
     student = get_student(username, password, base_url)
