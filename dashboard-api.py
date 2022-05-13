@@ -342,7 +342,7 @@ def delete_term_from_database(email):
     """    
     con = sql.connect('.data/database.db')
     with con:
-        con.execute("DELETE FROM terms WHERE email = ?", email)
+        con.execute("DELETE FROM terms WHERE email = ?", (email,))
 
 def get_term_from_database(email):
     """Returns the term set for the user with the given email
