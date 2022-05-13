@@ -6,6 +6,8 @@ import os
 from dotenv import load_dotenv
 from google.auth import jwt
 import sqlite3 as sql
+import random
+import yagmail
 
 # Get environment variables from .env file
 dotenv_path = os.path.join(os.path.dirname(__file__), '.env')
@@ -90,6 +92,30 @@ def delete_user():
 def wake():
     return "Woken", 200
 
+@app.route('/generate_recovery_code', methods=['POST'])
+def generate_recovery_code():
+    email = request.form['email']
+    recovery_code = random.randint(100000, 999999)
+    add_recovery_to_database(email, recovery_code)
+    yag = yagmail.SMTP('noreply.dashboard.api', oauth2_file='oauth2_creds.json')
+    contents = [
+        "<h1>Grades Dashboard Recovery Code</h1>",
+        "Your recovery code is {}".format(recovery_code),
+        "Please enter this code in the password recovery form on the <a href={}>Grades Dashboard web interface</a>.".format(WEB_INTERFACE_URL)
+    ]
+    yag.send(email, 'Grades Dashboard Password Reset', contents)
+    return "Recovery code generated. Please <a href={}>Return</a> then enter the code from your email.".format(WEB_INTERFACE_URL), 200
+
+@app.route('/recover', methods=['POST'])
+def recover():
+    email = request.form['email']
+    recovery_code = request.form['recovery_code']
+    if not verify_recovery(email, recovery_code): return "Invalid recovery code. Please <a href={}>Return</a> and check for typos.".format(WEB_INTERFACE_URL), 401
+    else: delete_recovery_from_database(email)
+    new_user = [email].extend(get_user_from_database(email))
+    add_user_to_database(new_user[0], new_user[1], new_user[2], new_user[3])
+    return "Password reset successfully. <a href={}>Return</a>".format(WEB_INTERFACE_URL), 200
+
 # In case we want to do other things from the webhook, we can figure out what to do here
 # based on the handler that we enter in the Actions Console
 def handleRequest(content, header):
@@ -104,14 +130,16 @@ def get_student(username, password, base_url):
 
 def get_grade(content, header):
     username, password, base_url = get_user_from_database(get_email(header))
-    if username == None or password == None or base_url == None:
+    if username == None or password == None or base_url == None: # If the user's registration is incomplete, prompt them to sign up
         register_card = card_response_button("Finish Account Linking", "Please register", "Go to {} to enter your login information.".format(WEB_INTERFACE_URL), "https://img.icons8.com/fluency/96/000000/urgent-property.png", "Register warning icon", "Finish", WEB_INTERFACE_URL)
         return register_card
     
-    email = get_email(header)
+    # Try to idenify the class the user is trying to get the grade for
     try: synonym = content['intent']['params']['class']['resolved']
-    except KeyError: return simple_response("Sorry, something went wrong. Please try again later.")
-    section_name = evaluate_class_from_synonym(email, synonym)
+    except KeyError: return simple_response("Sorry, something went wrong while interpreting your request. Please try again later.")
+    
+    email = get_email(header) # Get the user's email address from Google's header
+    section_name = evaluate_class_from_synonym(email, synonym) # Convert the general class synonym to the specific section name
 
     student = get_student(username, password, base_url)
     parser = studentParser.StudentParser(student)
@@ -278,11 +306,23 @@ def create_terms_table():
         );
         """)
 
+def create_recovery_table():
+    """Create a recovery codes table if it doesn't exist, will also create database.db if it doesn't exist"""
+    con = sql.connect('.data/database.db')
+    with con:
+        con.execute("""
+        CREATE TABLE IF NOT EXISTS recovery (
+            email TEXT,
+            recovery_code TEXT
+        );
+        """)
+
 def create_tables():
     """Create tables for users, classes, and terms table if they don't exist"""
     create_users_table()
     create_classes_table()
     create_terms_table()
+    create_recovery_table()
 
 # -------------------------------- User table -------------------------------- #
 def add_user_to_database(email, username, password, base_url):
@@ -328,7 +368,6 @@ def add_term_to_database(email, term):
         email (str): Email address of the user
         term (str): Term from the form
     """    
-    create_terms_table()
     con = sql.connect('.data/database.db')
     with con:
         con.execute("INSERT INTO terms VALUES (?, ?)", (email, term))
@@ -395,6 +434,53 @@ def evaluate_class_from_synonym(email, synonym):
     with con:
         data = con.execute("SELECT * FROM classes WHERE email = ? AND synonym = ?", (email, synonym))
         for row in data: return row[1] # If a row exists where the email and synonym match, return the class
+
+# ------------------------------ Recovery table ------------------------------ #
+def add_recovery_to_database(email, recovery_code):
+    """Adds a term to the terms database for the user with the given email
+
+    Args:
+        email (str): Email address of the user
+        recovery_code (int): Term from the form
+    """    
+    con = sql.connect('.data/database.db')
+    with con:
+        con.execute("INSERT INTO recovery VALUES (?, ?)", (email, recovery_code))
+
+def delete_recovery_from_database(email):
+    """Removes any recovery codes from the terms database if they exist for the user with the given email
+
+    Args:
+        email (str): Email to delete terms for
+    """    
+    con = sql.connect('.data/database.db')
+    with con:
+        con.execute("DELETE FROM recovery WHERE email = ?", (email,))
+
+def get_code_from_database(email):
+    """Returns the recovery code for the user with the given email
+
+    Args:
+        email (str): Email address of the user
+
+    Returns:
+        int: Recovery code for the user
+    """    
+    con = sql.connect('.data/database.db')
+    with con:
+        data = con.execute("SELECT * FROM recovery WHERE email = ?", (email,))
+        for row in data: return row[1]
+
+def verify_recovery(email, code):
+    """Checks the recovery code for the user with the given email against the given code
+
+    Args:
+        email (str): Email address of the user
+    """    
+    con = sql.connect('.data/database.db')
+    with con:
+        data = con.execute("SELECT * FROM recovery WHERE email = ? AND recovery_code = ?", (email, code))
+        for row in data: return True # If a row exists where the email and recovery code match, return True
 
 # ----------------------------------- Main ----------------------------------- #
 if __name__ == '__main__':

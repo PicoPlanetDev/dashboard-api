@@ -1,6 +1,9 @@
 # Hidden data directory
 /.data
 
+# Email credentials
+oauth2_creds.json
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
