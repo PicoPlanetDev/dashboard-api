@@ -87,6 +87,10 @@ def delete_user():
     delete_term_from_database(email)
     return "User deleted successfully. <a href={}>Return</a>".format(WEB_INTERFACE_URL), 200
 
+@app.route('/wake', methods=['GET'])
+def wake():
+    return "Woken", 200
+
 # In case we want to do other things from the webhook, we can figure out what to do here
 # based on the handler that we enter in the Actions Console
 def handleRequest(content, header):
@@ -116,12 +120,31 @@ def get_grade(content, header):
     grade = parser.getGrade(parser.convertNameAndSection(section_name), parser.convertTermNameToIds(term_name))
 
     percent = str(int(grade[1]))
+    letter = grade[0]
+    if letter in ["A", "B", "C", "D", "E"]: letter_name = letter
+    else: letter_name = "unknown"
+    letter_image_url = "https://raw.githubusercontent.com/PicoPlanetDev/dashboard-api/master/grade_letters/{}.png".format(letter_name)
 
     responseText = "You have a {} percent in {}.".format(percent, section_name)
-    jsonResponse = simple_response(responseText)
+    # jsonResponse = simple_response(responseText)
+    jsonResponse = card_response_nobutton(section_name, "{} percent".format(percent), responseText, letter_image_url, letter, responseText, responseText)
 
     return jsonResponse
 
+def get_email(header):
+    """Gets the email address of the user by decrypting the token in the header.
+
+    Args:
+        header (str?/dict?): The header of the POST request obtained by request.headers
+
+    Returns:
+        str: User's email address
+    """    
+    authorization = header['Authorization']
+    claims = jwt.decode(authorization, certs=GOOGLE_PUBLIC_CERTS, audience=GOOGLE_CLIENT_ID)
+    return claims['email']
+
+# ----------------------------- Webhook responses ---------------------------- #
 def simple_response(text):
     """Returns a JSON response with speech and text.
 
@@ -214,39 +237,9 @@ def card_response_nobutton(title, subtitle, text, image_url, image_alt, first_si
         }
     return json.dumps(card)
 
-def get_email(header):
-    """Gets the email address of the user by decrypting the token in the header.
-
-    Args:
-        header (str?/dict?): The header of the POST request obtained by request.headers
-
-    Returns:
-        str: User's email address
-    """    
-    authorization = header['Authorization']
-    claims = jwt.decode(authorization, certs=GOOGLE_PUBLIC_CERTS, audience=GOOGLE_CLIENT_ID)
-    return claims['email']
-
-# ------------------------------- User Database ------------------------------ #
-
-def add_user_to_database(email, username, password, base_url):
-    con = sql.connect('.data/database.db')
-    # Add user to database
-    with con:
-        con.execute("INSERT INTO users VALUES (?, ?, ?, ?)", (email, username, password, base_url))
-
-def get_user_from_database(email):
-    con = sql.connect('.data/database.db')
-    with con:
-        data = con.execute("SELECT * FROM users WHERE email = ?", (email,))
-        for row in data: return row[1], row[2], row[3] # Hopefully there is just one email
-    return None, None, None # If there is no user, return None, None, None which should ask the user to create an account
-
-def delete_user_from_database(email):
-    con = sql.connect('.data/database.db')
-    # Password must also be provided to delete a user
-    with con:
-        con.execute("DELETE FROM users WHERE email = ?", email)
+# ---------------------------------------------------------------------------- #
+#                              Database functions                              #
+# ---------------------------------------------------------------------------- #
 
 # ------------------------------- Create tables ------------------------------ #
 def create_users_table():
@@ -291,6 +284,43 @@ def create_tables():
     create_classes_table()
     create_terms_table()
 
+# -------------------------------- User table -------------------------------- #
+def add_user_to_database(email, username, password, base_url):
+    con = sql.connect('.data/database.db')
+    # Add user to database
+    with con:
+        con.execute("INSERT INTO users VALUES (?, ?, ?, ?)", (email, username, password, base_url))
+
+def get_user_from_database(email):
+    con = sql.connect('.data/database.db')
+    with con:
+        data = con.execute("SELECT * FROM users WHERE email = ?", (email,))
+        for row in data: return row[1], row[2], row[3] # Hopefully there is just one email
+    return None, None, None # If there is no user, return None, None, None which should ask the user to create an account
+
+def delete_user_from_database(email):
+    con = sql.connect('.data/database.db')
+    # Password must also be provided to delete a user
+    with con:
+        con.execute("DELETE FROM users WHERE email = ?", email)
+
+# Email and password verification function
+def verify_email_and_password(email, password):
+    """Checks the email against the password in the database to ensure that the user is allowed to perform an action
+
+    Args:
+        email (str): Email address of the user trying to perform an action
+        password (str): Password of the user trying to perform an action
+
+    Returns:
+        bool: Whether the user is allowed to perform an action
+    """    
+    con = sql.connect('.data/database.db')
+    with con:
+        data = con.execute("SELECT * FROM users WHERE email = ? AND password = ?", (email, password))
+        for row in data: return True # If a row exists where the email and password match, return True
+
+# -------------------------------- Term table -------------------------------- #
 def add_term_to_database(email, term):
     """Adds a term to the terms database for the user with the given email
 
@@ -327,21 +357,7 @@ def get_term_from_database(email):
         data = con.execute("SELECT * FROM terms WHERE email = ?", (email,))
         for row in data: return row[1]
 
-def verify_email_and_password(email, password):
-    """Checks the email against the password in the database to ensure that the user is allowed to perform an action
-
-    Args:
-        email (str): Email address of the user trying to perform an action
-        password (str): Password of the user trying to perform an action
-
-    Returns:
-        bool: Whether the user is allowed to perform an action
-    """    
-    con = sql.connect('.data/database.db')
-    with con:
-        data = con.execute("SELECT * FROM users WHERE email = ? AND password = ?", (email, password))
-        for row in data: return True # If a row exists where the email and password match, return True
-
+# ------------------------------- Classes table ------------------------------ #
 def add_classes_to_database(email, classes):
     """Adds classes and synonyms to the classes database for the user with the given email
 
@@ -380,10 +396,7 @@ def evaluate_class_from_synonym(email, synonym):
         data = con.execute("SELECT * FROM classes WHERE email = ? AND synonym = ?", (email, synonym))
         for row in data: return row[1] # If a row exists where the email and synonym match, return the class
 
-@app.route('/wake', methods=['GET'])
-def wake():
-    return "Woken", 200
-
+# ----------------------------------- Main ----------------------------------- #
 if __name__ == '__main__':
     if DEBUG: app.run(debug=True)
     create_tables()
