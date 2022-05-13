@@ -113,7 +113,7 @@ def recover():
     recovery_code = request.form['recovery_code']
     new_password = request.form['new_password']
     new_password_conf = request.form['new_password_conf']
-    if new_password != new_password_conf: return "Passwords do not match. {} {} Please <a href={}>Return</a> and try again.".format(new_password, new_password_conf, WEB_INTERFACE_URL), 401
+    if new_password != new_password_conf: return "Passwords do not match. Please <a href={}>Return</a> and try again.".format(WEB_INTERFACE_URL), 401
     if not verify_recovery(email, recovery_code): return "Invalid recovery code. Please <a href={}>Return</a> and check for typos.".format(WEB_INTERFACE_URL), 401
     else:
         delete_recovery_from_database(email)
