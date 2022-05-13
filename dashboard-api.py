@@ -117,8 +117,8 @@ def recover():
     if not verify_recovery(email, recovery_code): return "Invalid recovery code. Please <a href={}>Return</a> and check for typos.".format(WEB_INTERFACE_URL), 401
     else:
         delete_recovery_from_database(email)
+        old_user = get_user_from_database(email)
         delete_user_from_database(email)
-    old_user = get_user_from_database(email)
     new_user = [email, old_user[1], new_password, old_user[2]]
     add_user_to_database(new_user[0], new_user[1], new_user[2], new_user[3])
     return "Password reset successfully. <a href={}>Return</a>".format(WEB_INTERFACE_URL), 200
