@@ -1,3 +1,4 @@
+from tkinter import N
 from flask import Flask, request#, jsonify
 import pywerschool
 import studentParser
@@ -146,6 +147,7 @@ def get_grade(content, header):
     except KeyError: return simple_response("Sorry, something went wrong while interpreting your request. Please try again later.")
     
     email = get_email(header) # Get the user's email address from Google's header
+    if email == None: return simple_response("Sorry, I couldn't verify your email address. Please try again later.")
     section_name = evaluate_class_from_synonym(email, synonym) # Convert the general class synonym to the specific section name
 
     student = get_student(username, password, base_url)
@@ -176,7 +178,8 @@ def get_email(header):
         str: User's email address
     """    
     authorization = header['Authorization']
-    claims = jwt.decode(authorization, certs=GOOGLE_PUBLIC_CERTS, audience=GOOGLE_CLIENT_ID)
+    try: claims = jwt.decode(authorization, certs=GOOGLE_PUBLIC_CERTS, audience=GOOGLE_CLIENT_ID)
+    except jwt.exceptions.InvalidTokenError: return None
     return claims['email']
 
 # ----------------------------- Webhook responses ---------------------------- #
