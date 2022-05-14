@@ -138,6 +138,7 @@ def get_student(username, password, base_url):
 
 def get_grade(content, header):
     email = get_email(header)
+    if email == None: return simple_response("Sorry, I couldn't verify your email address. Please try again later.")
     username, password, base_url = get_user_from_database(email) # Get the user's email address from Google's header
     if username == None or password == None or base_url == None: # If the user's registration is incomplete, prompt them to sign up
         register_card = card_response_button("Finish Account Linking", "Please register", "Go to {} to enter your login information.".format(WEB_INTERFACE_URL), "https://img.icons8.com/fluency/96/000000/urgent-property.png", "Register warning icon", "Finish", WEB_INTERFACE_URL)
@@ -176,7 +177,8 @@ def get_email(header):
     Returns:
         str: User's email address
     """    
-    authorization = header['Authorization']
+    try: authorization = header['Authorization']
+    except: return None
     claims = jwt.decode(authorization, certs=GOOGLE_PUBLIC_CERTS, audience=GOOGLE_CLIENT_ID)
     return claims['email']
 
