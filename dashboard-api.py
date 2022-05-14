@@ -113,8 +113,11 @@ def generate_recovery_code():
     yag = yagmail.SMTP('noreply.dashboard.api', oauth2_file=EMAIL_OAUTH_CREDS_PATH)
     contents = [
         "<h1>Grades Dashboard Recovery Code</h1>",
-        "Your recovery code is {}".format(recovery_code),
-        "Please enter this code in the password recovery form on the <a href={}>Grades Dashboard web interface</a>.".format(WEB_INTERFACE_URL)
+        "Your recovery code is <code>{}</code>".format(recovery_code),
+        "Please enter this code in the password recovery form on the <a href={}>Grades Dashboard web interface</a>.".format(WEB_INTERFACE_URL),
+        "This code will eventually expire. If you don't use before it expires, you will need to generate a new code.",
+        "<br><br>Not you? Don't worry - this code will expire soon.",
+        "<br><br>Thanks for using Grades Dashboard!"
     ]
     yag.send(email, 'Grades Dashboard Password Reset', contents)
     return "Recovery code generated. Please <a href={}>Return</a> then enter the code from your email.".format(WEB_INTERFACE_URL), 200
