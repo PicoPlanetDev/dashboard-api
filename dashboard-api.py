@@ -178,7 +178,7 @@ def get_email(header):
     """    
     authorization = header['Authorization']
     try: claims = jwt.decode(authorization, certs=GOOGLE_PUBLIC_CERTS, audience=GOOGLE_CLIENT_ID)
-    except jwt.exceptions.InvalidTokenError: return None
+    except KeyError: return None
     return claims['email']
 
 # ----------------------------- Webhook responses ---------------------------- #
