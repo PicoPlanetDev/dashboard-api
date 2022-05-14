@@ -177,10 +177,11 @@ def get_email(header):
     Returns:
         str: User's email address
     """    
-    try: authorization = header['Authorization']
+    try:
+        authorization = header['Authorization']
+        claims = jwt.decode(authorization, certs=GOOGLE_PUBLIC_CERTS, audience=GOOGLE_CLIENT_ID)
+        return claims['email']
     except: return None
-    claims = jwt.decode(authorization, certs=GOOGLE_PUBLIC_CERTS, audience=GOOGLE_CLIENT_ID)
-    return claims['email']
 
 # ----------------------------- Webhook responses ---------------------------- #
 def simple_response(text):
