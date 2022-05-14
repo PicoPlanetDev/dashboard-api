@@ -1,4 +1,3 @@
-from tkinter import N
 from flask import Flask, request#, jsonify
 import pywerschool
 import studentParser
