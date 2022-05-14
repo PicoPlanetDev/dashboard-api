@@ -1,5 +1,4 @@
-from operator import ge
-from flask import Flask, request#, jsonify
+from flask import Flask, request
 import pywerschool
 import studentParser
 import json
@@ -14,7 +13,6 @@ import yagmail
 dotenv_path = os.path.join(os.path.dirname(__file__), '.env')
 load_dotenv(dotenv_path)
 
-DEBUG = os.environ.get("DASHBOARD_API_DEBUG") == "True"
 EMAIL_OAUTH_CREDS_PATH = os.environ.get("DASHBOARD_API_EMAIL_OAUTH_CREDS_PATH")
 GOOGLE_CLIENT_ID = os.environ.get("DASHBOARD_API_URL_CLIENT_ID")
 WEB_INTERFACE_URL = os.environ.get("DASHBOARD_API_WEB_INTERFACE_URL")
@@ -495,5 +493,6 @@ def verify_recovery(email, code):
 
 # ----------------------------------- Main ----------------------------------- #
 if __name__ == '__main__':
-    if DEBUG: app.run(debug=True)
-    create_tables()
+    app.run(debug=True)
+
+create_tables()
