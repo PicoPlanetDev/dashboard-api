@@ -57,7 +57,16 @@ def edit_classes():
     # The user's identity must be checked before make any modifications
     if not verify_email_and_password(email, password): return "Invalid email or password. <a href={}>Return</a>".format(WEB_INTERFACE_URL), 401
 
-    classes = json.loads(request.form['classes'])
+    classes_form = request.form.to_dict()
+    # Remove the email and password from the dictionary TODO: This is a hacky way to do this
+    classes_form.pop('email')
+    classes_form.pop('password')
+
+    class_names = [classes_form[class_name] for class_name in classes_form if class_name[0:10] == "class_name"]
+    class_synonyms = [classes_form[class_synonym].split(',') for class_synonym in classes_form if class_synonym[0:13] == "class_synonym"]
+    classes = dict(zip(class_names, class_synonyms))
+    print(classes)
+
     remove_classes_from_database(email) # This replaces the old classes with the new ones
     add_classes_to_database(email, classes)
     return "Classes added successfully. <a href={}>Return</a>".format(WEB_INTERFACE_URL), 200
