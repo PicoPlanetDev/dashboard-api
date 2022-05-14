@@ -179,7 +179,10 @@ def get_email(header):
         authorization = header['Authorization']
         claims = jwt.decode(authorization, certs=GOOGLE_PUBLIC_CERTS, audience=GOOGLE_CLIENT_ID)
         return claims['email']
-    except: return None
+    except: # Normally you would just return None here
+        try:
+            return header['Email'] # But because I can't generate Google tokens for my email and they expire, I'll allow this
+        except: return None
 
 # ----------------------------- Webhook responses ---------------------------- #
 def simple_response(text):
@@ -493,6 +496,6 @@ def verify_recovery(email, code):
 
 # ----------------------------------- Main ----------------------------------- #
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, host="0.0.0.0", port=8080)
 
 create_tables()
