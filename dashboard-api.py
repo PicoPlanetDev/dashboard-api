@@ -62,13 +62,17 @@ def edit_classes():
     classes_form.pop('email')
     classes_form.pop('password')
 
-    class_names = [classes_form[class_name] for class_name in classes_form if class_name[0:10] == "class_name"]
+    # Everything else in the form is either a class or a synonym, so we need to differentiate based on the field name
+    # Because each field gets a new number after the name, we check the first 10 or 13 characters of the field name to see if it starts with 
+    # class_name or class_synonym.
+    class_names = [classes_form[class_name] for class_name in classes_form if class_name[0:10] == "class_name"] # Get all the class names from their keys
+    # Get all the class synonyms from their keys and use split to make them a list
     class_synonyms = [classes_form[class_synonym].split(',') for class_synonym in classes_form if class_synonym[0:13] == "class_synonym"]
     classes = dict(zip(class_names, class_synonyms))
-    print(classes)
 
-    remove_classes_from_database(email) # This replaces the old classes with the new ones
-    add_classes_to_database(email, classes)
+    # This replaces the old classes with the new ones, so we need to delete the old ones
+    remove_classes_from_database(email)
+    add_classes_to_database(email, classes) # Add the new classes to the database
     return "Classes added successfully. <a href={}>Return</a>".format(WEB_INTERFACE_URL), 200
 
 @app.route('/set_term', methods=['POST'])
