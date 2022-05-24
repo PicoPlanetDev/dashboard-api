@@ -62,13 +62,17 @@ def edit_classes():
     classes_form.pop('email')
     classes_form.pop('password')
 
-    class_names = [classes_form[class_name] for class_name in classes_form if class_name[0:10] == "class_name"]
+    # Everything else in the form is either a class or a synonym, so we need to differentiate based on the field name
+    # Because each field gets a new number after the name, we check the first 10 or 13 characters of the field name to see if it starts with 
+    # class_name or class_synonym.
+    class_names = [classes_form[class_name] for class_name in classes_form if class_name[0:10] == "class_name"] # Get all the class names from their keys
+    # Get all the class synonyms from their keys and use split to make them a list
     class_synonyms = [classes_form[class_synonym].split(',') for class_synonym in classes_form if class_synonym[0:13] == "class_synonym"]
     classes = dict(zip(class_names, class_synonyms))
-    print(classes)
 
-    remove_classes_from_database(email) # This replaces the old classes with the new ones
-    add_classes_to_database(email, classes)
+    # This replaces the old classes with the new ones, so we need to delete the old ones
+    remove_classes_from_database(email)
+    add_classes_to_database(email, classes) # Add the new classes to the database
     return "Classes added successfully. <a href={}>Return</a>".format(WEB_INTERFACE_URL), 200
 
 @app.route('/set_term', methods=['POST'])
@@ -109,8 +113,11 @@ def generate_recovery_code():
     yag = yagmail.SMTP('noreply.dashboard.api', oauth2_file=EMAIL_OAUTH_CREDS_PATH)
     contents = [
         "<h1>Grades Dashboard Recovery Code</h1>",
-        "Your recovery code is {}".format(recovery_code),
-        "Please enter this code in the password recovery form on the <a href={}>Grades Dashboard web interface</a>.".format(WEB_INTERFACE_URL)
+        "Your recovery code is <code>{}</code>".format(recovery_code),
+        "Please enter this code in the password recovery form on the <a href={}>Grades Dashboard web interface</a>.".format(WEB_INTERFACE_URL),
+        "This code will eventually expire. If you don't use before it expires, you will need to generate a new code.",
+        "<br><br>Not you? Don't worry - this code will expire soon.",
+        "<br><br>Thanks for using Grades Dashboard!"
     ]
     yag.send(email, 'Grades Dashboard Password Reset', contents)
     return "Recovery code generated. Please <a href={}>Return</a> then enter the code from your email.".format(WEB_INTERFACE_URL), 200
