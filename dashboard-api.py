@@ -154,8 +154,8 @@ def get_student(username, password, base_url):
     return student
 
 def get_grade(content, header):
-    email = get_email(header)
-    if email == None: return simple_response("Sorry, I couldn't verify your email address. Please try again later.")
+    try: email = get_email(header)
+    except: return simple_response("Sorry, I couldn't verify your email address. Please try again later.")
     username, password, base_url = get_user_from_database(email) # Get the user's email address from Google's header
     if username == None or password == None or base_url == None: # If the user's registration is incomplete, prompt them to sign up
         register_card = card_response_button("Finish Account Linking", "Please register", "Go to {} to enter your login information.".format(WEB_INTERFACE_URL), "https://img.icons8.com/fluency/96/000000/urgent-property.png", "Register warning icon", "Finish", WEB_INTERFACE_URL)
@@ -210,7 +210,7 @@ def get_email(header):
     except: # Normally you would just return None here
         try:
             return header['Email'] # But because I can't generate Google tokens for my email and they expire, I'll allow this
-        except: return None
+        except: raise Exception("Email address could not be decrypted from the token.")
 
 # ----------------------------- Webhook responses ---------------------------- #
 def simple_response(text):
