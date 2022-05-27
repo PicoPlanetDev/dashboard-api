@@ -18,6 +18,8 @@ EMAIL_OAUTH_CREDS_PATH = os.environ.get("DASHBOARD_API_EMAIL_OAUTH_CREDS_PATH")
 GOOGLE_CLIENT_ID = os.environ.get("DASHBOARD_API_URL_CLIENT_ID")
 WEB_INTERFACE_URL = os.environ.get("DASHBOARD_API_WEB_INTERFACE_URL")
 
+DATABASE_PATH = os.environ.get("DATABASE_PATH")
+
 # GOOGLE_PUBLIC_CERTS = {
 #   "fcbd7f481a825d113e0d03dd94e60b69ff1665a2": "-----BEGIN CERTIFICATE-----\nMIIDJzCCAg+gAwIBAgIJAJCNvVzIrySKMA0GCSqGSIb3DQEBBQUAMDYxNDAyBgNV\nBAMMK2ZlZGVyYXRlZC1zaWdub24uc3lzdGVtLmdzZXJ2aWNlYWNjb3VudC5jb20w\nHhcNMjIwNDI5MTUyMTUxWhcNMjIwNTE2MDMzNjUxWjA2MTQwMgYDVQQDDCtmZWRl\ncmF0ZWQtc2lnbm9uLnN5c3RlbS5nc2VydmljZWFjY291bnQuY29tMIIBIjANBgkq\nhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAoz7Gb9oYt/sq8Z37LDAcfSqQBuTtD669\n+tjg+/hTVyXPRslIg6qPPLlVthRkXZYjhwnc85CXO9TW1C1ItJjX70vSQPvQ1wAL\nWMOd306BPIYRkkKSa3APtidaM6ZmR2HosWRUf/03luhfkk9QUyVaCP2WJTFxENuJ\ni5yyggE0cDT7MJGqn9VvYCv/+LUjiQ4v8jvc+dH881HeBDtwpsucXGCmx4ZcjEBc\nrNXqJiQHPo1I3OIXxxtsLxujU8f0QVRjdSQDr8KgeSdic8kk4iJp8DISWSU1hQSC\nbXUCG465L6I1iytO6iNQp+rfjpBt9jx0TA6VqIteglWhu5gfcKb9YQIDAQABozgw\nNjAMBgNVHRMBAf8EAjAAMA4GA1UdDwEB/wQEAwIHgDAWBgNVHSUBAf8EDDAKBggr\nBgEFBQcDAjANBgkqhkiG9w0BAQUFAAOCAQEAANlfZ6OYj/Wy951dSx7f7xxmleeW\neDPhWqpL4J+8ljHB2HRbBi5EjdJInHNquL/wCDw46nJhTIQ13dh7YJhJhgLarLcq\nd6DcBMeFTBZUFBoaHZNy7hZxZ1ggvonHGTpzPw68wW0Cx5erfswstwE7QPYBEHJf\nOlj6zwNQgvSEC8rEMIKfVuB9g0OWdzduPnwyoGOhDixP9pAjlV0MfYc/rMUGGpKw\npdg4kTBkx9XLYfiCfQJmsVz5CyQV9Q0VfdeIp5qKYWRutIQGTYPc0M0bgDSNpbRD\nd/QbikaqP5Q54ag8wdyr4SPiGIKlWkQRfAYcdVqFOI/uGLqsGbaNCAl7bg==\n-----END CERTIFICATE-----\n",
 #   "861649e450315383f6b9d510b7cd4e9226c3cd88": "-----BEGIN CERTIFICATE-----\nMIIDJzCCAg+gAwIBAgIJANCP0rP/R41vMA0GCSqGSIb3DQEBBQUAMDYxNDAyBgNV\nBAMMK2ZlZGVyYXRlZC1zaWdub24uc3lzdGVtLmdzZXJ2aWNlYWNjb3VudC5jb20w\nHhcNMjIwNDIxMTUyMTUwWhcNMjIwNTA4MDMzNjUwWjA2MTQwMgYDVQQDDCtmZWRl\ncmF0ZWQtc2lnbm9uLnN5c3RlbS5nc2VydmljZWFjY291bnQuY29tMIIBIjANBgkq\nhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAqR7fa5Gb2rhy+RJCJwSFn7J2KiKs/WgM\nXVR+23Z6OfX89/utHGkM+Qk27abDGPXa0u9OKzwOU2JZx7yNye7LH4kKX1PEAEz0\np9XGbfF3yFyiD5JkziOfQyYj9ERKWfxKatpk+oi9D/p2leQKzTfEZWIfLVZkgNXF\nkUdhzCG68j5kFhZ1Ys9bRRDo3Q1BkLXmP/Y6PW1g74/rvAYCiQ6hJVvyyXYnqHco\nawedgO6/MQihaSeAW25AhY8MXVo4+MdNvboahOlJg280YuxkCZiRqxyQEqd5HKCP\nzP49TDQbdAxDa900ewCQK9gkbHiNKFbOBv/b94YfMh93NUoEa+jCnwIDAQABozgw\nNjAMBgNVHRMBAf8EAjAAMA4GA1UdDwEB/wQEAwIHgDAWBgNVHSUBAf8EDDAKBggr\nBgEFBQcDAjANBgkqhkiG9w0BAQUFAAOCAQEAY2ficho0B/tfCt2QtQPEYVQ6FPfa\nuw8IhQHA12RgRcTLKNOhe9wYH4gYzCYbs08N/nX0UuoCI0ND1TgoUZT2BV9qY/Q3\nztSCGHU0SeHore1u/vQVf5qpoeZapWohCXE/tMJP3nKkDfXyZHfTfo1wMQqprR8W\nc3ZWH/jG49MBGURIkrmuP3AjjfXIK0tNcrUofWU/z2eXNIUTBxwE/Lgk8Ieb11j3\nTjM9v0b2KqBOLcaZ0+0JuYRawC2EkdEOlhprF8ssREun3Syjx6bJA9g4NgMWveZ9\nWQGthW7MggT5erMS/03e+h04FtaEaRygwtIUj0nGir2p0HqQ9FQDUnflHg==\n-----END CERTIFICATE-----\n",
@@ -312,7 +314,7 @@ def card_response_nobutton(title, subtitle, text, image_url, image_alt, first_si
 # ------------------------------- Create tables ------------------------------ #
 def create_users_table():
     """Create a users table if it doesn't exist, will also create database.db if it doesn't exist"""
-    con = sql.connect('.data/database.db')
+    con = sql.connect(DATABASE_PATH)
     with con:
         con.execute("""
         CREATE TABLE IF NOT EXISTS users (
@@ -325,7 +327,7 @@ def create_users_table():
 
 def create_classes_table():
     """Create a classes table if it doesn't exist, will also create database.db if it doesn't exist"""
-    con = sql.connect('.data/database.db')
+    con = sql.connect(DATABASE_PATH)
     with con:
         con.execute("""
         CREATE TABLE IF NOT EXISTS classes (
@@ -337,7 +339,7 @@ def create_classes_table():
 
 def create_terms_table():
     """Create a terms table if it doesn't exist, will also create database.db if it doesn't exist"""
-    con = sql.connect('.data/database.db')
+    con = sql.connect(DATABASE_PATH)
     with con:
         con.execute("""
         CREATE TABLE IF NOT EXISTS terms (
@@ -348,7 +350,7 @@ def create_terms_table():
 
 def create_recovery_table():
     """Create a recovery codes table if it doesn't exist, will also create database.db if it doesn't exist"""
-    con = sql.connect('.data/database.db')
+    con = sql.connect(DATABASE_PATH)
     with con:
         con.execute("""
         CREATE TABLE IF NOT EXISTS recovery (
@@ -366,20 +368,20 @@ def create_tables():
 
 # -------------------------------- User table -------------------------------- #
 def add_user_to_database(email, username, password, base_url):
-    con = sql.connect('.data/database.db')
+    con = sql.connect(DATABASE_PATH)
     # Add user to database
     with con:
         con.execute("INSERT INTO users VALUES (?, ?, ?, ?)", (email, username, password, base_url))
 
 def get_user_from_database(email):
-    con = sql.connect('.data/database.db')
+    con = sql.connect(DATABASE_PATH)
     with con:
         data = con.execute("SELECT * FROM users WHERE email = ?", (email,))
         for row in data: return row[1], row[2], row[3] # Hopefully there is just one email
     return None, None, None # If there is no user, return None, None, None which should ask the user to create an account
 
 def delete_user_from_database(email):
-    con = sql.connect('.data/database.db')
+    con = sql.connect(DATABASE_PATH)
     # Password must also be provided to delete a user
     with con:
         con.execute("DELETE FROM users WHERE email = ?", (email,))
@@ -395,10 +397,11 @@ def verify_email_and_password(email, password):
     Returns:
         bool: Whether the user is allowed to perform an action
     """    
-    con = sql.connect('.data/database.db')
+    con = sql.connect(DATABASE_PATH)
     with con:
         data = con.execute("SELECT * FROM users WHERE email = ? AND password = ?", (email, password))
         for row in data: return True # If a row exists where the email and password match, return True
+    return False # If no row exists, return False
 
 # -------------------------------- Term table -------------------------------- #
 def add_term_to_database(email, term):
@@ -408,7 +411,7 @@ def add_term_to_database(email, term):
         email (str): Email address of the user
         term (str): Term from the form
     """    
-    con = sql.connect('.data/database.db')
+    con = sql.connect(DATABASE_PATH)
     with con:
         con.execute("INSERT INTO terms VALUES (?, ?)", (email, term))
 
@@ -418,7 +421,7 @@ def delete_term_from_database(email):
     Args:
         email (str): Email to delete terms for
     """    
-    con = sql.connect('.data/database.db')
+    con = sql.connect(DATABASE_PATH)
     with con:
         con.execute("DELETE FROM terms WHERE email = ?", (email,))
 
@@ -431,7 +434,7 @@ def get_term_from_database(email):
     Returns:
         str: Term set for the user
     """    
-    con = sql.connect('.data/database.db')
+    con = sql.connect(DATABASE_PATH)
     with con:
         data = con.execute("SELECT * FROM terms WHERE email = ?", (email,))
         for row in data: return row[1]
@@ -444,7 +447,7 @@ def add_classes_to_database(email, classes):
         email (str): Email address of the user to add classes to
         classes (dict): Classes to be added to the user
     """    
-    con = sql.connect('.data/database.db')
+    con = sql.connect(DATABASE_PATH)
     with con:
         for class_name in classes:
             for synonym in classes[class_name]:
@@ -456,7 +459,7 @@ def remove_classes_from_database(email):
     Args:
         email (str): Email address of the user to remove classes from
     """    
-    con = sql.connect('.data/database.db')
+    con = sql.connect(DATABASE_PATH)
     with con:
         con.execute("DELETE FROM classes WHERE email = ?", (email,))
 
@@ -470,7 +473,7 @@ def evaluate_class_from_synonym(email, synonym):
     Returns:
         str: Class name as it appears in PowerSchool
     """    
-    con = sql.connect('.data/database.db')
+    con = sql.connect(DATABASE_PATH)
     with con:
         data = con.execute("SELECT * FROM classes WHERE email = ? AND synonym = ?", (email, synonym))
         for row in data: return row[1] # If a row exists where the email and synonym match, return the class
@@ -483,7 +486,7 @@ def add_recovery_to_database(email, recovery_code):
         email (str): Email address of the user
         recovery_code (int): Term from the form
     """    
-    con = sql.connect('.data/database.db')
+    con = sql.connect(DATABASE_PATH)
     with con:
         con.execute("INSERT INTO recovery VALUES (?, ?)", (email, recovery_code))
 
@@ -493,7 +496,7 @@ def delete_recovery_from_database(email):
     Args:
         email (str): Email to delete terms for
     """    
-    con = sql.connect('.data/database.db')
+    con = sql.connect(DATABASE_PATH)
     with con:
         con.execute("DELETE FROM recovery WHERE email = ?", (email,))
 
@@ -506,7 +509,7 @@ def get_code_from_database(email):
     Returns:
         int: Recovery code for the user
     """    
-    con = sql.connect('.data/database.db')
+    con = sql.connect(DATABASE_PATH)
     with con:
         data = con.execute("SELECT * FROM recovery WHERE email = ?", (email,))
         for row in data: return row[1]
@@ -517,13 +520,13 @@ def verify_recovery(email, code):
     Args:
         email (str): Email address of the user
     """    
-    con = sql.connect('.data/database.db')
+    con = sql.connect(DATABASE_PATH)
     with con:
         data = con.execute("SELECT * FROM recovery WHERE email = ? AND recovery_code = ?", (email, code))
         for row in data: return True # If a row exists where the email and recovery code match, return True
 
 # ----------------------------------- Main ----------------------------------- #
-if __name__ == '__main__':
-    app.run(debug=True, host="0.0.0.0", port=8080)
+# if __name__ == '__main__':
+#     app.run(debug=True, host="0.0.0.0", port=8080)
 
 create_tables()
