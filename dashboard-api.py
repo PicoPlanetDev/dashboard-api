@@ -42,106 +42,9 @@ def endpoint():
     response = handleRequest(content, header)
     return response, 200
 
-# Add a user with the required information from the webpage form
-@app.route('/create_user', methods=['POST'])
-def create_user():
-    # Get the information from the form
-    email = request.form['email']
-    username = request.form['username']
-    password = request.form['password']
-    base_url = request.form['base_url']
-    # Add the user to the database
-    add_user_to_database(email, username, password, base_url)
-    # Return a response to the user with a success message and a link back to the homepage
-    return "User created successfully. <a href={}>Return</a>".format(WEB_INTERFACE_URL), 200
-
-@app.route('/edit_classes', methods=['POST'])
-def edit_classes():
-    email = request.form['email']
-    password = request.form['password']
-    # The user's identity must be checked before make any modifications
-    if not verify_email_and_password(email, password): return "Invalid email or password. <a href={}>Return</a>".format(WEB_INTERFACE_URL), 401
-
-    classes_form = request.form.to_dict()
-    # Remove the email and password from the dictionary TODO: This is a hacky way to do this
-    classes_form.pop('email')
-    classes_form.pop('password')
-
-    # Everything else in the form is either a class or a synonym, so we need to differentiate based on the field name
-    # Because each field gets a new number after the name, we check the first 10 or 13 characters of the field name to see if it starts with 
-    # class_name or class_synonym.
-    class_names = [classes_form[class_name] for class_name in classes_form if class_name[0:10] == "class_name"] # Get all the class names from their keys
-    # Get all the class synonyms from their keys and use split to make them a list
-    class_synonyms = [classes_form[class_synonym].split(',') for class_synonym in classes_form if class_synonym[0:13] == "class_synonym"]
-    classes = dict(zip(class_names, class_synonyms))
-
-    # This replaces the old classes with the new ones, so we need to delete the old ones
-    remove_classes_from_database(email)
-    add_classes_to_database(email, classes) # Add the new classes to the database
-    return "Classes added successfully. <a href={}>Return</a>".format(WEB_INTERFACE_URL), 200
-
-@app.route('/set_term', methods=['POST'])
-def set_term():
-    email = request.form['email']
-    password = request.form['password']
-    # The user's identity must be checked before make any modifications
-    if not verify_email_and_password(email, password): return "Invalid email or password. <a href={}>Return</a>".format(WEB_INTERFACE_URL), 401
-
-    term = request.form['term']
-    delete_term_from_database(email) # This replaces the old term with the new one
-    add_term_to_database(email, term)
-    return "Term set successfully. <a href={}>Return</a>".format(WEB_INTERFACE_URL), 200
-
-# Delete all information with the user's email if their password also matches
-@app.route('/delete_user', methods=['POST'])
-def delete_user():
-    email = request.form['email']
-    password = request.form['password']
-    # The user's identity must be checked before make any modifications
-    if not verify_email_and_password(email, password): return "Invalid email or password. <a href={}>Return</a>".format(WEB_INTERFACE_URL), 401
-
-    # Make sure to delete all information with the user's email
-    delete_user_from_database(email)
-    remove_classes_from_database(email)
-    delete_term_from_database(email)
-    return "User deleted successfully. <a href={}>Return</a>".format(WEB_INTERFACE_URL), 200
-
 @app.route('/wake', methods=['GET'])
 def wake():
     return "Woken", 200
-
-@app.route('/generate_recovery_code', methods=['POST'])
-def generate_recovery_code():
-    email = request.form['email']
-    recovery_code = random.randint(100000, 999999)
-    add_recovery_to_database(email, recovery_code)
-    yag = yagmail.SMTP('noreply.dashboard.api', oauth2_file=EMAIL_OAUTH_CREDS_PATH)
-    contents = [
-        "<h1>Grades Dashboard Recovery Code</h1>",
-        "Your recovery code is <code>{}</code>".format(recovery_code),
-        "Please enter this code in the password recovery form on the <a href={}>Grades Dashboard web interface</a>.".format(WEB_INTERFACE_URL),
-        "This code will eventually expire. If you don't use before it expires, you will need to generate a new code.",
-        "<br><br>Not you? Don't worry - this code will expire soon.",
-        "<br><br>Thanks for using Grades Dashboard!"
-    ]
-    yag.send(email, 'Grades Dashboard Password Reset', contents)
-    return "Recovery code generated. Please <a href={}>Return</a> then enter the code from your email.".format(WEB_INTERFACE_URL), 200
-
-@app.route('/recover', methods=['POST'])
-def recover():
-    email = request.form['email']
-    recovery_code = request.form['recovery_code']
-    new_password = request.form['new_password']
-    new_password_conf = request.form['new_password_conf']
-    if new_password != new_password_conf: return "Passwords do not match. Please <a href={}>Return</a> and try again.".format(WEB_INTERFACE_URL), 401
-    if not verify_recovery(email, recovery_code): return "Invalid recovery code. Please <a href={}>Return</a> and check for typos.".format(WEB_INTERFACE_URL), 401
-    else:
-        delete_recovery_from_database(email)
-        old_user = get_user_from_database(email)
-        delete_user_from_database(email)
-    new_user = [email, old_user[1], new_password, old_user[2]]
-    add_user_to_database(new_user[0], new_user[1], new_user[2], new_user[3])
-    return "Password reset successfully. <a href={}>Return</a>".format(WEB_INTERFACE_URL), 200
 
 # In case we want to do other things from the webhook, we can figure out what to do here
 # based on the handler that we enter in the Actions Console
@@ -310,81 +213,12 @@ def card_response_nobutton(title, subtitle, text, image_url, image_alt, first_si
 # ---------------------------------------------------------------------------- #
 #                              Database functions                              #
 # ---------------------------------------------------------------------------- #
-
-# ------------------------------- Create tables ------------------------------ #
-def create_users_table():
-    """Create a users table if it doesn't exist, will also create database.db if it doesn't exist"""
-    con = sql.connect(DATABASE_PATH)
-    with con:
-        con.execute("""
-        CREATE TABLE IF NOT EXISTS users (
-            email TEXT PRIMARY KEY,
-            username TEXT,
-            password TEXT,
-            base_url TEXT
-        );
-        """)
-
-def create_classes_table():
-    """Create a classes table if it doesn't exist, will also create database.db if it doesn't exist"""
-    con = sql.connect(DATABASE_PATH)
-    with con:
-        con.execute("""
-        CREATE TABLE IF NOT EXISTS classes (
-            email TEXT,
-            class TEXT,
-            synonym TEXT
-        );
-        """)
-
-def create_terms_table():
-    """Create a terms table if it doesn't exist, will also create database.db if it doesn't exist"""
-    con = sql.connect(DATABASE_PATH)
-    with con:
-        con.execute("""
-        CREATE TABLE IF NOT EXISTS terms (
-            email TEXT,
-            term TEXT
-        );
-        """)
-
-def create_recovery_table():
-    """Create a recovery codes table if it doesn't exist, will also create database.db if it doesn't exist"""
-    con = sql.connect(DATABASE_PATH)
-    with con:
-        con.execute("""
-        CREATE TABLE IF NOT EXISTS recovery (
-            email TEXT,
-            recovery_code TEXT
-        );
-        """)
-
-def create_tables():
-    """Create tables for users, classes, and terms table if they don't exist"""
-    create_users_table()
-    create_classes_table()
-    create_terms_table()
-    create_recovery_table()
-
-# -------------------------------- User table -------------------------------- #
-def add_user_to_database(email, username, password, base_url):
-    con = sql.connect(DATABASE_PATH)
-    # Add user to database
-    with con:
-        con.execute("INSERT INTO users VALUES (?, ?, ?, ?)", (email, username, password, base_url))
-
 def get_user_from_database(email):
     con = sql.connect(DATABASE_PATH)
     with con:
         data = con.execute("SELECT * FROM users WHERE email = ?", (email,))
         for row in data: return row[1], row[2], row[3] # Hopefully there is just one email
     return None, None, None # If there is no user, return None, None, None which should ask the user to create an account
-
-def delete_user_from_database(email):
-    con = sql.connect(DATABASE_PATH)
-    # Password must also be provided to delete a user
-    with con:
-        con.execute("DELETE FROM users WHERE email = ?", (email,))
 
 # Email and password verification function
 def verify_email_and_password(email, password):
@@ -403,28 +237,6 @@ def verify_email_and_password(email, password):
         for row in data: return True # If a row exists where the email and password match, return True
     return False # If no row exists, return False
 
-# -------------------------------- Term table -------------------------------- #
-def add_term_to_database(email, term):
-    """Adds a term to the terms database for the user with the given email
-
-    Args:
-        email (str): Email address of the user
-        term (str): Term from the form
-    """    
-    con = sql.connect(DATABASE_PATH)
-    with con:
-        con.execute("INSERT INTO terms VALUES (?, ?)", (email, term))
-
-def delete_term_from_database(email):
-    """Removes any terms from the terms database if they exist for the user with the given email
-
-    Args:
-        email (str): Email to delete terms for
-    """    
-    con = sql.connect(DATABASE_PATH)
-    with con:
-        con.execute("DELETE FROM terms WHERE email = ?", (email,))
-
 def get_term_from_database(email):
     """Returns the term set for the user with the given email
 
@@ -438,30 +250,6 @@ def get_term_from_database(email):
     with con:
         data = con.execute("SELECT * FROM terms WHERE email = ?", (email,))
         for row in data: return row[1]
-
-# ------------------------------- Classes table ------------------------------ #
-def add_classes_to_database(email, classes):
-    """Adds classes and synonyms to the classes database for the user with the given email
-
-    Args:
-        email (str): Email address of the user to add classes to
-        classes (dict): Classes to be added to the user
-    """    
-    con = sql.connect(DATABASE_PATH)
-    with con:
-        for class_name in classes:
-            for synonym in classes[class_name]:
-                con.execute("INSERT INTO classes VALUES (?, ?, ?)", (email, class_name, synonym))
-
-def remove_classes_from_database(email):
-    """Removes all classes and synonyms from the classes database for the user with the given email
-
-    Args:
-        email (str): Email address of the user to remove classes from
-    """    
-    con = sql.connect(DATABASE_PATH)
-    with con:
-        con.execute("DELETE FROM classes WHERE email = ?", (email,))
 
 def evaluate_class_from_synonym(email, synonym):
     """Returns the user's class name as it appears in PowerSchool for the given synonym
@@ -477,56 +265,3 @@ def evaluate_class_from_synonym(email, synonym):
     with con:
         data = con.execute("SELECT * FROM classes WHERE email = ? AND synonym = ?", (email, synonym))
         for row in data: return row[1] # If a row exists where the email and synonym match, return the class
-
-# ------------------------------ Recovery table ------------------------------ #
-def add_recovery_to_database(email, recovery_code):
-    """Adds a term to the terms database for the user with the given email
-
-    Args:
-        email (str): Email address of the user
-        recovery_code (int): Term from the form
-    """    
-    con = sql.connect(DATABASE_PATH)
-    with con:
-        con.execute("INSERT INTO recovery VALUES (?, ?)", (email, recovery_code))
-
-def delete_recovery_from_database(email):
-    """Removes any recovery codes from the terms database if they exist for the user with the given email
-
-    Args:
-        email (str): Email to delete terms for
-    """    
-    con = sql.connect(DATABASE_PATH)
-    with con:
-        con.execute("DELETE FROM recovery WHERE email = ?", (email,))
-
-def get_code_from_database(email):
-    """Returns the recovery code for the user with the given email
-
-    Args:
-        email (str): Email address of the user
-
-    Returns:
-        int: Recovery code for the user
-    """    
-    con = sql.connect(DATABASE_PATH)
-    with con:
-        data = con.execute("SELECT * FROM recovery WHERE email = ?", (email,))
-        for row in data: return row[1]
-
-def verify_recovery(email, code):
-    """Checks the recovery code for the user with the given email against the given code
-
-    Args:
-        email (str): Email address of the user
-    """    
-    con = sql.connect(DATABASE_PATH)
-    with con:
-        data = con.execute("SELECT * FROM recovery WHERE email = ? AND recovery_code = ?", (email, code))
-        for row in data: return True # If a row exists where the email and recovery code match, return True
-
-# ----------------------------------- Main ----------------------------------- #
-# if __name__ == '__main__':
-#     app.run(debug=True, host="0.0.0.0", port=8080)
-
-create_tables()
