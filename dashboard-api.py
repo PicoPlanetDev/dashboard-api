@@ -235,10 +235,18 @@ def card_response_nobutton(title, subtitle, text, image_url, image_alt, first_si
 #                              Database functions                              #
 # ---------------------------------------------------------------------------- #
 def get_user_from_database(email):
+    """Gets the user's information from the database.
+
+    Args:
+        email (str): User's email address
+
+    Returns:
+        tuple: (username, password, base_url)
+    """    
     con = sql.connect(DATABASE_PATH)
     with con:
         data = con.execute("SELECT * FROM users WHERE email = ?", (email,))
-        for row in data: return row[1], row[2], row[3] # Hopefully there is just one email
+        for row in data: return row[1], row[2], row[3] # There should only be one row that matches the email
     return None, None, None # If there is no user, return None, None, None which should ask the user to create an account
 
 # Email and password verification function
