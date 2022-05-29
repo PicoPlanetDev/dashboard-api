@@ -12,14 +12,13 @@ import urllib.request # for getting PEM certs
 dotenv_path = os.path.join(os.path.dirname(__file__), '.env')
 load_dotenv(dotenv_path)
 
-GOOGLE_CLIENT_ID = os.environ.get("DASHBOARD_API_URL_CLIENT_ID")
-WEB_INTERFACE_URL = os.environ.get("DASHBOARD_API_WEB_INTERFACE_URL")
+GOOGLE_CLIENT_ID = os.environ.get("DASHBOARD_API_URL_CLIENT_ID") # for audience when decoding token
+WEB_INTERFACE_URL = os.environ.get("DASHBOARD_API_WEB_INTERFACE_URL") # for card responses with link to web interface
+DATABASE_PATH = os.environ.get("DATABASE_PATH") # for accessing the database which is in a higher shared directory
 
-DATABASE_PATH = os.environ.get("DATABASE_PATH")
+PEM_CERTS_URL = 'https://www.googleapis.com/oauth2/v1/certs' # URL to get the PEM certs from
 
-PEM_CERTS_URL = 'https://www.googleapis.com/oauth2/v1/certs'
-
-app = Flask(__name__)
+app = Flask(__name__) # Create a flask app to handle the webhook
 
 # ---------------------------------------------------------------------------- #
 #                                  App routes                                  #
@@ -28,55 +27,86 @@ app = Flask(__name__)
 # Google Actions webhook
 @app.route('/endpoint', methods=['POST'])
 def endpoint():
-    header = request.headers
-    content = request.get_json()
-    response = handleRequest(content, header)
-    return response, 200
+    header = request.headers # Get the header for decoding the token for the email
+    content = request.get_json() # Get the content of the POST request for finding what class the user wants
+    response = handleRequest(content, header) # Handle the request
+    return response, 200 # Return the response
 
+# Wake route is leftover from Glitch, kept to test if the server is online
 @app.route('/wake', methods=['GET'])
 def wake():
     return "Woken", 200
 
-# In case we want to do other things from the webhook, we can figure out what to do here
-# based on the handler that we enter in the Actions Console
+# In case the /endpoint route needs to do multiple things, this function can be used to handle them based on the handler entered in the Actions Console
 def handleRequest(content, header):
     handler = content['handler']['name']
     if handler == "get_grade":
         return get_grade(content, header)
 
 def get_student(username, password, base_url):
+    """Gets the student object from the pywerschool module
+
+    Args:
+        username (str): Username of the user
+        password (str): Password of the user
+        base_url (str): URL of the user's school to log into
+
+    Returns:
+        OrderedDict: Student information
+    """    
     client = pywerschool.Client(base_url)
     student = client.getStudent(username, password, toDict=True)
     return student
 
 def get_grade(content, header):
+    """Returns a JSON response with a card that includes text, an image, and a button.
+
+    Args:
+        content (dict): The content of the POST request
+        header (str?/dict?): The header of the POST request obtained by request.headers
+
+    Returns:
+        str: JSON response string
+    """    
+    # Try to get the email of the user from the Google Actions header
     try: email = get_email(header)
     except: return simple_response("Sorry, I couldn't verify your email address. Please try again later.")
+
+    # Get the user's information from the database
     username, password, base_url = get_user_from_database(email) # Get the user's email address from Google's header
+
+    # Ensure the user has already entered their information, if not, direct them to the web interface
     if username == None or password == None or base_url == None: # If the user's registration is incomplete, prompt them to sign up
         register_card = card_response_button("Finish Account Linking", "Please register", "Go to {} to enter your login information.".format(WEB_INTERFACE_URL), "https://img.icons8.com/fluency/96/000000/urgent-property.png", "Register warning icon", "Finish", WEB_INTERFACE_URL)
         return register_card
     
-    # Try to idenify the class the user is trying to get the grade for
+    # Try to identify the class the user is trying to get the grade for
     try: synonym = content['intent']['params']['class']['resolved']
     except KeyError: return simple_response("Sorry, something went wrong while interpreting your request. Please try again later.")
 
     section_name = evaluate_class_from_synonym(email, synonym) # Convert the general class synonym to the specific section name
 
+    # Now get the student's information (slow so do it late)
     student = get_student(username, password, base_url)
     parser = studentParser.StudentParser(student)
 
+    # Get the current term from the database
     term_name = get_term_from_database(email)
+
+    # Get the grade for the class
     grade = parser.getGrade(parser.convertNameAndSection(section_name), parser.convertTermNameToIds(term_name))
 
+    # grade looks like: ['letter', 'percent']
     percent = str(int(grade[1]))
     letter = grade[0]
+
+    # Get the right image based on the grade letter
     if letter in ["A", "B", "C", "D", "E"]: letter_name = letter
     else: letter_name = "unknown"
     letter_image_url = "https://raw.githubusercontent.com/PicoPlanetDev/dashboard-api/master/grade_letters/{}.png".format(letter_name)
 
+    # Create the card response
     responseText = "You have a {} percent in {}.".format(percent, section_name)
-    # jsonResponse = simple_response(responseText)
     jsonResponse = card_response_nobutton(section_name, "{} percent".format(percent), responseText, letter_image_url, letter, responseText, responseText)
 
     return jsonResponse
