@@ -1,20 +1,17 @@
-from flask import Flask, request
-import pywerschool
-import studentParser
+from flask import Flask, request # webhook
+import pywerschool # gets student info
+import studentParser # parses the pywerschool response
 import json
-import os
-from dotenv import load_dotenv
-from google.auth import jwt
-import sqlite3 as sql
-import random
-import yagmail
-import urllib.request
+import os # for loading the .env file
+from dotenv import load_dotenv # for loading the .env file
+from google.auth import jwt # for decoding the token
+import sqlite3 as sql # for database
+import urllib.request # for getting PEM certs
 
 # Get environment variables from .env file
 dotenv_path = os.path.join(os.path.dirname(__file__), '.env')
 load_dotenv(dotenv_path)
 
-EMAIL_OAUTH_CREDS_PATH = os.environ.get("DASHBOARD_API_EMAIL_OAUTH_CREDS_PATH")
 GOOGLE_CLIENT_ID = os.environ.get("DASHBOARD_API_URL_CLIENT_ID")
 WEB_INTERFACE_URL = os.environ.get("DASHBOARD_API_WEB_INTERFACE_URL")
 
