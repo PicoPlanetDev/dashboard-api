@@ -96,11 +96,10 @@ def get_grade(content, header):
     # Get the user's information from the database
     username, password, base_url = get_user_from_database(email) # Get the user's email address from Google's header
 
+    #TODO make this more readable
     # Ensure the user has already entered their information, if not, direct them to the web interface
-    if username == None or password == None or base_url == None: # If the user's registration is incomplete, prompt them to sign up
-        logger.warning("User registration is incomplete. Returning link to web interface.")
-        register_card = card_response_button("Finish Account Linking", "Please register", "Go to {} to enter your login information.".format(WEB_INTERFACE_URL), "https://img.icons8.com/fluency/96/000000/urgent-property.png", "Register warning icon", "Finish", WEB_INTERFACE_URL)
-        return register_card
+    if username is None or password is None or base_url is None: # If the user's registration is incomplete, prompt them to sign up
+        return enter_information_response("Please register")
     
     # Try to identify the class the user is trying to get the grade for
     try: synonym = content['intent']['params']['class']['resolved']
@@ -109,6 +108,7 @@ def get_grade(content, header):
         return simple_response("Sorry, something went wrong while interpreting your request. Please try again later.")
 
     section_name = evaluate_class_from_synonym(email, synonym) # Convert the general class synonym to the specific section name
+    if section_name is None: return enter_information_response("Please add your classes")
 
     # Now get the student's information (slow so do it late)
     student = get_student(username, password, base_url)
@@ -116,6 +116,7 @@ def get_grade(content, header):
 
     # Get the current term from the database
     term_name = get_term_from_database(email)
+    if term_name is None: return enter_information_response("Please set your term")
 
     # Get the grade for the class
     grade = parser.getGrade(parser.convertNameAndSection(section_name), parser.convertTermNameToIds(term_name))
@@ -162,12 +163,14 @@ def get_email(header):
     except: # Normally you would just return None here
         try:
             logger.warning("Failed to decode token, trying to get debug email from header")
-            return header['Email'] # But because I can't generate Google tokens for my email and they expire, I'll allow this
+            email = header['Email']
+            logger.info(f"Debug email found in header: {email}")
+            return email # But because I can't generate Google tokens for my email and they expire, I'll allow this for debugging
         except:
             logger.error("Email address could not be decrypted from the token, and no debug email was found in the header.")
             raise Exception("Email address could not be decrypted from the token.")
 
-# ----------------------------- Webhook responses ---------------------------- #
+# ----------------------------- Pre-made responses ---------------------------- #
 def simple_response(text):
     """Returns a JSON response with speech and text.
 
@@ -260,6 +263,19 @@ def card_response_nobutton(title, subtitle, text, image_url, image_alt, first_si
         }
     return json.dumps(card)
 
+def enter_information_response(prompt):
+    """Returns a JSON response with a card that asks the user to enter their information on the web interface.
+
+    Args:
+        prompt (str): Title of the card
+
+    Returns:
+        str: JSON response string of the card
+    """    
+    logger.warning(f"User registration is incomplete. Returning link to web interface: {prompt}")
+    register_card = card_response_button(prompt, "Please enter your information", f"Go to {WEB_INTERFACE_URL} to enter your information.", "https://img.icons8.com/fluency/96/000000/urgent-property.png", "Register warning icon", "Finish", WEB_INTERFACE_URL)
+    return register_card
+
 # ---------------------------------------------------------------------------- #
 #                              Database functions                              #
 # ---------------------------------------------------------------------------- #
@@ -312,6 +328,9 @@ def get_term_from_database(email):
     with con:
         data = con.execute("SELECT * FROM terms WHERE email = ?", (email,))
         for row in data: return row[1]
+    # If we get here, the term was not found in the database
+    logger.warning(f"Term for email {email} was not found in the database.")
+    return None
 
 def evaluate_class_from_synonym(email, synonym):
     """Returns the user's class name as it appears in PowerSchool for the given synonym
@@ -327,3 +346,6 @@ def evaluate_class_from_synonym(email, synonym):
     with con:
         data = con.execute("SELECT * FROM classes WHERE email = ? AND synonym = ?", (email, synonym))
         for row in data: return row[1] # If a row exists where the email and synonym match, return the class
+    # If we get here, there is no class with the given synonym for the user
+    logger.warning(f"Class {synonym} for email {email} was not found in the database.")
+    return None
