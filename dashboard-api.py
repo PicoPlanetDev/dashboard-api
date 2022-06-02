@@ -21,7 +21,9 @@ PEM_CERTS_URL = 'https://www.googleapis.com/oauth2/v1/certs' # URL to get the PE
 
 LOG_LEVEL = os.environ.get("DASHBOARD_API_LOG_LEVEL", 'WARNING') # setting the log level based on the environment variable
 
-logging.basicConfig(filename='log.log', level=LOG_LEVEL) # setting the log level based on the environment variable
+# Set up logging
+logger = logging.getLogger('dashboard-api')
+logger.basicConfig(filename='log.log', level=LOG_LEVEL) # setting the log level based on the environment variable
 
 app = Flask(__name__) # Create a flask app to handle the webhook
 
@@ -40,7 +42,7 @@ def endpoint():
 # Wake route is leftover from Glitch, kept to test if the server is online
 @app.route('/wake', methods=['GET'])
 def wake():
-    logging.debug("Wake route called")
+    logger.debug("Wake route called")
     return "Woken", 200
 
 # In case the /endpoint route needs to do multiple things, this function can be used to handle them based on the handler entered in the Actions Console
@@ -83,14 +85,14 @@ def get_grade(content, header):
 
     # Ensure the user has already entered their information, if not, direct them to the web interface
     if username == None or password == None or base_url == None: # If the user's registration is incomplete, prompt them to sign up
-        logging.warning("User registration is incomplete. Returning link to web interface.")
+        logger.warning("User registration is incomplete. Returning link to web interface.")
         register_card = card_response_button("Finish Account Linking", "Please register", "Go to {} to enter your login information.".format(WEB_INTERFACE_URL), "https://img.icons8.com/fluency/96/000000/urgent-property.png", "Register warning icon", "Finish", WEB_INTERFACE_URL)
         return register_card
     
     # Try to identify the class the user is trying to get the grade for
     try: synonym = content['intent']['params']['class']['resolved']
     except KeyError:
-        logging.error("No class was found in the POST request. Returning error response.")
+        logger.error("No class was found in the POST request. Returning error response.")
         return simple_response("Sorry, something went wrong while interpreting your request. Please try again later.")
 
     section_name = evaluate_class_from_synonym(email, synonym) # Convert the general class synonym to the specific section name
@@ -112,7 +114,7 @@ def get_grade(content, header):
     # Get the right image based on the grade letter
     if letter in ["A", "B", "C", "D", "E"]: letter_name = letter
     else:
-        logging.warning("Grade letter is not A, B, C, D, or E. Using question mark image instead.")
+        logger.warning("Grade letter is not A, B, C, D, or E. Using question mark image instead.")
         letter_name = "unknown"
     letter_image_url = f"https://raw.githubusercontent.com/PicoPlanetDev/dashboard-api/master/grade_letters/{letter_name}.png"
 
@@ -146,10 +148,10 @@ def get_email(header):
         return claims['email']
     except: # Normally you would just return None here
         try:
-            logging.warning("Failed to decode token, trying to get debug email from header")
+            logger.warning("Failed to decode token, trying to get debug email from header")
             return header['Email'] # But because I can't generate Google tokens for my email and they expire, I'll allow this
         except:
-            logging.error("Email address could not be decrypted from the token, and no debug email was found in the header.")
+            logger.error("Email address could not be decrypted from the token, and no debug email was found in the header.")
             raise Exception("Email address could not be decrypted from the token.")
 
 # ----------------------------- Webhook responses ---------------------------- #
@@ -262,7 +264,7 @@ def get_user_from_database(email):
         data = con.execute("SELECT * FROM users WHERE email = ?", (email,))
         for row in data: return row[1], row[2], row[3] # There should only be one row that matches the email
     # If we get here, the email was not found in the database
-    logging.warning(f"Email {email} was not found in the database.")
+    logger.warning(f"Email {email} was not found in the database.")
     return None, None, None # If there is no user, return None, None, None which should ask the user to create an account
 
 # Email and password verification function
@@ -281,7 +283,7 @@ def verify_email_and_password(email, password):
         data = con.execute("SELECT * FROM users WHERE email = ? AND password = ?", (email, password))
         for row in data: return True # If a row exists where the email and password match, return True
     # If we get here, the email and password do not match
-    logging.warning(f"Email {email} and password {password} do not match in the database.")
+    logger.warning(f"Email {email} and password {password} do not match in the database.")
     return False # If no row exists, return False
 
 def get_term_from_database(email):
