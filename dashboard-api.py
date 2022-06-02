@@ -24,9 +24,19 @@ LOG_LEVEL = os.environ.get("DASHBOARD_API_LOG_LEVEL", 'WARNING') # setting the l
 # Set up logging
 logger = logging.getLogger('dashboard-api')
 logger.setLevel(LOG_LEVEL)
+# Create the file handler
 fileHandler = logging.FileHandler('dashboard-api.log')
 fileHandler.setLevel(LOG_LEVEL)
+# Create the console handler
+consoleHandler = logging.StreamHandler()
+consoleHandler.setLevel(LOG_LEVEL)
+# Create the formatter and add it to the handlers
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+fileHandler.setFormatter(formatter)
+consoleHandler.setFormatter(formatter)
+# Add the handlers to the logger
 logger.addHandler(fileHandler)
+logger.addHandler(consoleHandler)
 
 app = Flask(__name__) # Create a flask app to handle the webhook
 
