@@ -23,7 +23,10 @@ LOG_LEVEL = os.environ.get("DASHBOARD_API_LOG_LEVEL", 'WARNING') # setting the l
 
 # Set up logging
 logger = logging.getLogger('dashboard-api')
-logger.basicConfig(filename='log.log', level=LOG_LEVEL) # setting the log level based on the environment variable
+logger.setLevel(LOG_LEVEL)
+fileHandler = logging.FileHandler('dashboard-api.log')
+fileHandler.setLevel(LOG_LEVEL)
+logger.addHandler(fileHandler)
 
 app = Flask(__name__) # Create a flask app to handle the webhook
 
