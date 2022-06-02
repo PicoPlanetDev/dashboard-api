@@ -21,7 +21,7 @@ PEM_CERTS_URL = 'https://www.googleapis.com/oauth2/v1/certs' # URL to get the PE
 
 LOG_LEVEL = os.environ.get("DASHBOARD_API_LOG_LEVEL", 'WARNING') # setting the log level based on the environment variable
 
-logging.basicConfig(filename='log.log', encoding='utf-8', level=logging.DEBUG)
+logging.basicConfig(filename='log.log', level=logging.DEBUG)
 
 app = Flask(__name__) # Create a flask app to handle the webhook
 
